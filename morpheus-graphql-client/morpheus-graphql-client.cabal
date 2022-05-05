@@ -55,23 +55,23 @@ source-repository head
 library
   exposed-modules:
       Data.Morpheus.Client
+      Data.Morpheus.Client.Declare.Client
+      Data.Morpheus.Client.Declare.Fetch
+      Data.Morpheus.Client.Internal.Utils
+      Data.Morpheus.Client.Transform
   other-modules:
       Data.Morpheus.Client.Declare
       Data.Morpheus.Client.Declare.Aeson
-      Data.Morpheus.Client.Declare.Client
-      Data.Morpheus.Client.Declare.Fetch
       Data.Morpheus.Client.Declare.Type
       Data.Morpheus.Client.Fetch
       Data.Morpheus.Client.Internal.TH
       Data.Morpheus.Client.Internal.Types
-      Data.Morpheus.Client.Internal.Utils
       Data.Morpheus.Client.QuasiQuoter
       Data.Morpheus.Client.Schema.JSON.Parse
       Data.Morpheus.Client.Schema.JSON.TypeKind
       Data.Morpheus.Client.Schema.JSON.TypeRef
       Data.Morpheus.Client.Schema.JSON.Types
       Data.Morpheus.Client.Schema.Parse
-      Data.Morpheus.Client.Transform
       Data.Morpheus.Client.Transform.Core
       Data.Morpheus.Client.Transform.Global
       Data.Morpheus.Client.Transform.Local

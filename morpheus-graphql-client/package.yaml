@@ -34,6 +34,10 @@ library:
   source-dirs: src
   exposed-modules:
     - Data.Morpheus.Client
+    - Data.Morpheus.Client.Declare.Client
+    - Data.Morpheus.Client.Declare.Fetch
+    - Data.Morpheus.Client.Internal.Utils
+    - Data.Morpheus.Client.Transform
   ghc-options: '-Wall'
 tests:
   morpheus-graphql-client-test:
