@@ -7,6 +7,7 @@
 module Data.Morpheus.Client.Transform.Global
   ( toArgumentsType,
     toGlobalDefinitions,
+    toGlobalDefinitionsWith,
   )
 where
 
@@ -76,6 +77,16 @@ toGlobalDefinitions f Schema {types} =
       not (isResolverType t)
         && isNotSystemTypeName (typeName t)
         && f (typeName t)
+
+toGlobalDefinitionsWith :: (TypeDefinition ANY VALID -> Bool) -> Schema VALID -> [ClientTypeDefinition]
+toGlobalDefinitionsWith f Schema{types} =
+    mapMaybe generateGlobalType $
+        filter shouldInclude (toList types)
+  where
+    shouldInclude t =
+        not (isResolverType t)
+            && isNotSystemTypeName (typeName t)
+            && f t
 
 generateGlobalType :: TypeDefinition ANY VALID -> Maybe ClientTypeDefinition
 generateGlobalType TypeDefinition {typeName, typeContent} = do
