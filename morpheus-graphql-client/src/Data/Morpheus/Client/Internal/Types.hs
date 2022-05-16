@@ -1,15 +1,18 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Data.Morpheus.Client.Internal.Types
   ( ClientTypeDefinition (..),
     TypeNameTH (..),
-    ClientDefinition (..),
+    FetchDefinition (..),
     ClientConstructorDefinition (..),
-    FetchError (..)
+    FetchError (..),
+    SchemaSource (..),
+    ExecutableSource,
   )
 where
 
+import Data.ByteString.Lazy (ByteString)
 import Data.Morpheus.Types.Internal.AST
   ( ANY,
     FieldDefinition,
@@ -19,7 +22,7 @@ import Data.Morpheus.Types.Internal.AST
     TypeName,
     VALID,
   )
-import Relude
+import Relude hiding (ByteString)
 
 data TypeNameTH = TypeNameTH
   { namespace :: [FieldName],
@@ -40,9 +43,9 @@ data ClientTypeDefinition = ClientTypeDefinition
   }
   deriving (Show)
 
-data ClientDefinition = ClientDefinition
-  { clientArguments :: Maybe ClientTypeDefinition,
-    clientTypes :: [ClientTypeDefinition]
+data FetchDefinition = FetchDefinition
+  { rootTypeName :: TypeNameTH,
+    clientArgumentsTypeName :: Maybe TypeNameTH
   }
   deriving (Show)
 
@@ -51,3 +54,10 @@ data FetchError a
   | FetchErrorProducedErrors GQLErrors (Maybe a)
   | FetchErrorNoResult
   deriving (Show, Eq, Generic)
+
+data SchemaSource
+  = JSON ByteString
+  | GQL ByteString
+  deriving (Show, Eq)
+
+type ExecutableSource = Text

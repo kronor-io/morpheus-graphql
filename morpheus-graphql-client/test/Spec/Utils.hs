@@ -3,66 +3,51 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Spec.Utils
-  ( mockApi,
-    defineClientWith,
-    defineClientWithJSON,
+  ( path,
+    assertFetch,
   )
 where
 
+import Data.Aeson (FromJSON)
 import qualified Data.ByteString.Lazy as L (readFile)
 import Data.ByteString.Lazy.Char8 (ByteString)
-import Data.Functor ((<$>))
 import Data.Morpheus.Client
-  ( defineByDocumentFile,
-    defineByIntrospectionFile,
+  ( Fetch (..),
+    FetchError,
   )
-import Data.Morpheus.Types.Internal.AST
-  ( ExecutableDocument,
-    FieldName,
-    unpackName,
+import Relude hiding (ByteString, exp)
+import Test.Tasty
+  ( TestTree,
   )
-import Data.Semigroup ((<>))
-import qualified Data.Text as T
-import Language.Haskell.TH
-  ( Dec,
-    Q,
-    runIO,
-  )
-import System.Directory (doesFileExist)
-import Prelude
-  ( Bool (..),
-    FilePath,
-    IO,
-    String,
+import Test.Tasty.HUnit
+  ( assertEqual,
+    testCase,
   )
 
-path :: FieldName -> FilePath
-path name = "test/Case/" <> T.unpack (unpackName name)
+path :: FilePath -> FilePath
+path name = "test/Case/" <> name
 
-withProject :: FilePath -> FilePath
-withProject = ("morpheus-graphql-client/" <>)
+getFile :: FilePath -> IO ByteString
+getFile p = L.readFile (path p)
 
-mockApi :: FieldName -> ByteString -> IO ByteString
-mockApi p _ = L.readFile (path p <> "/response.json")
+mockJSON :: FilePath -> ByteString -> IO ByteString
+mockJSON p _ = getFile (p <> ".json")
 
-fixFilePath :: FilePath -> Q FilePath
-fixFilePath x = prefix <$> runIO (doesFileExist x)
+assertFetch ::
+  ( Fetch a,
+    FromJSON a,
+    Eq a,
+    Show a
+  ) =>
+  FilePath ->
+  Maybe FilePath ->
+  Args a ->
+  Either (FetchError a) a ->
+  TestTree
+assertFetch folder file args v =
+  testCase display $ do
+    response <- fetch (mockJSON (folder <> "/" <> fileName)) args
+    assertEqual ("Test " <> display) v response
   where
-    prefix True = x
-    prefix False = withProject x
-
-defineClientWith ::
-  FieldName ->
-  (ExecutableDocument, String) ->
-  Q [Dec]
-defineClientWith url exp = do
-  p <- fixFilePath (path url <> "/schema.gql")
-  defineByDocumentFile p exp
-
-defineClientWithJSON ::
-  FieldName ->
-  (ExecutableDocument, String) ->
-  Q [Dec]
-defineClientWithJSON url exp = do
-  p <- fixFilePath (path url <> "/schema.json")
-  defineByIntrospectionFile p exp
+    fileName = fromMaybe "response" file
+    display = fromMaybe folder file

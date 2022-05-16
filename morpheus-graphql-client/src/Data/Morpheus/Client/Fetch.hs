@@ -1,14 +1,10 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Data.Morpheus.Client.Fetch
   ( Fetch (..),
-    deriveFetch,
   )
 where
 
@@ -24,26 +20,19 @@ import Data.ByteString.Lazy (ByteString)
 import Data.Morpheus.Client.Internal.Types
   ( FetchError (..),
   )
-import Data.Morpheus.Client.JSONSchema.Types
+import Data.Morpheus.Client.Schema.JSON.Types
   ( JSONResponse (..),
-  )
-import Data.Morpheus.CodeGen.Internal.TH
-  ( applyCons,
-    toCon,
-    typeInstanceDec,
   )
 import Data.Morpheus.Types.IO
   ( GQLRequest (..),
   )
 import Data.Morpheus.Types.Internal.AST
   ( FieldName,
-    TypeName,
   )
 import Data.Text
   ( pack,
   )
-import Language.Haskell.TH
-import Relude hiding (ByteString, Type)
+import Relude hiding (ByteString)
 
 fixVars :: A.Value -> Maybe A.Value
 fixVars x
@@ -51,7 +40,7 @@ fixVars x
   | otherwise = Just x
 
 class Fetch a where
-  type Args a :: *
+  type Args a :: Type
   __fetch ::
     (Monad m, Show a, ToJSON (Args a), FromJSON a) =>
     String ->
@@ -67,13 +56,3 @@ class Fetch a where
       processResponse JSONResponse {responseData = Nothing, responseErrors = []} = Left FetchErrorNoResult
       processResponse JSONResponse {responseData = result, responseErrors = (x : xs)} = Left $ FetchErrorProducedErrors (x :| xs) result
   fetch :: (Monad m, FromJSON a) => (ByteString -> m ByteString) -> Args a -> m (Either (FetchError a) a)
-
-deriveFetch :: Type -> TypeName -> String -> Q [Dec]
-deriveFetch resultType typeName queryString =
-  pure <$> instanceD (cxt []) iHead methods
-  where
-    iHead = applyCons ''Fetch [typeName]
-    methods =
-      [ funD 'fetch [clause [] (normalB [|__fetch queryString typeName|]) []],
-        pure $ typeInstanceDec ''Args (toCon typeName) resultType
-      ]

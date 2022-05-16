@@ -28,7 +28,8 @@ import Data.Morpheus.Server
 import Data.Morpheus.Types
   ( GQLType,
     RootResolver (..),
-    Undefined (..),
+    Undefined,
+    defaultRootResolver,
     render,
   )
 import Data.Set (Set, singleton)
@@ -177,7 +178,7 @@ resolveBand DB.Band {name, id = i} =
   pure
     Band
       { name,
-        members = lift (dataFetch $ GetBandMemberByBandID i) >>= sequenceA . (resolveBandMember <$>)
+        members = lift (dataFetch $ GetBandMemberByBandID i) >>= traverse resolveBandMember
       }
 
 resolveBandMember ::
@@ -199,18 +200,16 @@ resolveInstrument DB.Instrument {name, id = i} =
   pure
     Instrument
       { name,
-        players = lift (dataFetch $ GetBandMemberByInstrumentID i) >>= sequenceA . (resolveBandMember <$>)
+        players = lift (dataFetch $ GetBandMemberByInstrumentID i) >>= traverse resolveBandMember
       }
 
 resolveInstruments :: (Monad (t (FreerT Source m)), MonadTrans t, Monad m) => t (FreerT Source m) [Instrument (t (FreerT Source m))]
-resolveInstruments = lift (dataFetch GetInstruments) >>= sequenceA . (resolveInstrument <$>)
+resolveInstruments = lift (dataFetch GetInstruments) >>= traverse resolveInstrument
 
 rootResolver :: (Monad m) => RootResolver (FreerT Source m) () Query Undefined Undefined
 rootResolver =
-  RootResolver
-    { queryResolver = Query {instruments = resolveInstruments},
-      mutationResolver = Undefined,
-      subscriptionResolver = Undefined
+  defaultRootResolver
+    { queryResolver = Query {instruments = resolveInstruments}
     }
 
 app :: App () (FreerT Source DB.Query)

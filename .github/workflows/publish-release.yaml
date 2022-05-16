@@ -1,0 +1,48 @@
+name: Publish Release
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  publish-release:
+    if: ${{ github.base_ref == 'master' && startsWith(github.head_ref, 'publish-release/') && github.event.pull_request.merged == true  }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1.2
+      - name: Upload Packages
+        run: |
+          stack sdist
+          stack upload morpheus-graphql-tests
+          stack upload morpheus-graphql-core
+          stack upload morpheus-graphql-code-gen
+          stack upload morpheus-graphql-app
+          stack upload morpheus-graphql-client
+          stack upload morpheus-graphql-subscriptions
+          stack upload morpheus-graphql
+        env:
+          HACKAGE_USERNAME: ${{ secrets.HACKAGE_USERNAME }}
+          HACKAGE_PASSWORD: ${{ secrets.HACKAGE_PASSWORD }}
+
+      - name: Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Describe
+        id: describe
+        run: |
+          npm i
+          npm run release -- describe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.describe.outputs.version }}
+          release_name: ${{ steps.describe.outputs.version }}
+          body: ${{ github.event.pull_request.body }}

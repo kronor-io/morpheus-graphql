@@ -1,0 +1,41 @@
+name: Draft Release
+on: workflow_dispatch
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: "master"
+      - run: git fetch --prune --unshallow
+
+      - name: Setup
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install
+        run: npm i
+
+      - name: Draft Release
+        id: draft
+        run: npm run release -- draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Source Distribution
+        uses: ./.github/actions/sdist
+
+      - name: Open Release Pull Request
+        run: |
+          git config --global user.name "GitHub"
+          git config --global user.email "<noreply@github.com>"
+          npm run release -- open ${{ steps.draft.outputs.version }} -b "${{ steps.draft.outputs.body }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
