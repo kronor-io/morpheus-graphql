@@ -101,4 +101,5 @@ defineByDocument doc = internalLegacyLocalDeclareTypes (GQL <$> doc)
 
 {-# DEPRECATED defineByIntrospection "use clientTypeDeclarations" #-}
 defineByIntrospection :: IO ByteString -> ExecutableSource -> Q [Dec]
-defineByIntrospection doc = internalLegacyLocalDeclareTypes (JSON <$> doc)
+defineByIntrospection doc =
+  internalLegacyLocalDeclareTypes (Data.Morpheus.Client.Internal.Types.JSON <$> doc)

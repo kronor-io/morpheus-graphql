@@ -15,6 +15,7 @@ module Data.Morpheus.Validation.Internal.Value
   )
 where
 
+import Data.Aeson (toJSON)
 import Control.Monad.Except (throwError)
 import Data.Morpheus.Error.Input (typeViolation)
 import Data.Morpheus.Error.Variable (incompatibleVariableType)
@@ -260,6 +261,8 @@ validateScalar ScalarDefinition {validateValue} value = do
   where
     toScalar :: TypeName -> Value s -> InputValidator schemaS ctx ValidValue
     toScalar typeName (Scalar x) | isValidDefault typeName x = pure (Scalar x)
+    toScalar "JSON" x@(Object _) = pure (Scalar (JSON (toJSON x)))
+    toScalar "JSON" x@(List _) = pure (Scalar (JSON (toJSON x)))
     toScalar _ _ = violation Nothing value
 
 isValidDefault :: TypeName -> ScalarValue -> Bool

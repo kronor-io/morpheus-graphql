@@ -31,6 +31,7 @@ where
 
 -- MORPHEUS
 
+import qualified Data.Aeson as A
 import Data.Morpheus.App.Internal.Resolving
   ( Resolver,
     SubscriptionField,
@@ -258,6 +259,10 @@ instance GQLType Bool where
 instance GQLType ID where
   type KIND ID = SCALAR
   __type _ = mkTypeData "ID"
+
+instance GQLType A.Value where
+  type KIND A.Value = SCALAR
+  __type _ = mkTypeData "JSON"
 
 -- WRAPPERS
 instance GQLType ()

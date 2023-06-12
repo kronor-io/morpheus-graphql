@@ -95,6 +95,13 @@ instance DecodeScalar Double where
 instance EncodeScalar Double where
   encodeScalar = Float
 
+instance DecodeScalar A.Value where
+    decodeScalar (JSON x) = Right x
+    decodeScalar _ = Left ""
+
+instance EncodeScalar A.Value where
+    encodeScalar = JSON
+
 scalarToJSON :: EncodeScalar a => a -> A.Value
 scalarToJSON = A.toJSON . encodeScalar
 

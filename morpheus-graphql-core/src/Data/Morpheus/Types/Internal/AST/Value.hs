@@ -98,7 +98,7 @@ data ScalarValue
   | Float Double
   | String Text
   | Boolean Bool
-  | Value A.Value
+  | JSON A.Value
   deriving (Show, Eq, Generic, Lift)
 
 instance IsString ScalarValue where
@@ -109,14 +109,14 @@ instance RenderGQL ScalarValue where
   renderGQL (Float x) = renderGQL x
   renderGQL (String x) = renderGQL x
   renderGQL (Boolean x) = renderGQL x
-  renderGQL (Value x) = renderGQL x
+  renderGQL (JSON x) = renderGQL x
 
 instance A.ToJSON ScalarValue where
   toJSON (Float x) = A.toJSON x
   toJSON (Int x) = A.toJSON x
   toJSON (Boolean x) = A.toJSON x
   toJSON (String x) = A.toJSON x
-  toJSON (Value x) = A.toJSON x
+  toJSON (JSON x) = A.toJSON x
 
 instance A.FromJSON ScalarValue where
   parseJSON (A.Bool v) = pure $ Boolean v
