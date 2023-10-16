@@ -2,7 +2,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Data.Morpheus.Client.CodeGen.Declare
-  ( declareGlobalTypes,
+  ( toGlobalDefinitionsWith,
+    toLocalDefinitions,
+    printDeclarations,
+    declareGlobalTypes,
     declareGlobalTypesByName,
     declareLocalTypes,
     declareLocalTypesInline,
@@ -18,6 +21,7 @@ import Data.Morpheus.Client.CodeGen.AST
   )
 import Data.Morpheus.Client.CodeGen.Interpreting.Global
   ( toGlobalDefinitions,
+    toGlobalDefinitionsWith
   )
 import Data.Morpheus.Client.CodeGen.Interpreting.Local
   ( toLocalDefinitions,

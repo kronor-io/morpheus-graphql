@@ -60,6 +60,7 @@ library
       Data.Morpheus.Client
       Data.Morpheus.Client.CodeGen.AST
       Data.Morpheus.Client.CodeGen.Internal
+      Data.Morpheus.Client.CodeGen.Utils
   other-modules:
       Data.Morpheus.Client.CodeGen.Declare
       Data.Morpheus.Client.CodeGen.Interpreting.Arguments
@@ -69,7 +70,6 @@ library
       Data.Morpheus.Client.CodeGen.Interpreting.PreDeclarations
       Data.Morpheus.Client.CodeGen.QuasiQuoter
       Data.Morpheus.Client.CodeGen.TH
-      Data.Morpheus.Client.CodeGen.Utils
       Data.Morpheus.Client.Fetch
       Data.Morpheus.Client.Fetch.GQLClient
       Data.Morpheus.Client.Fetch.Http

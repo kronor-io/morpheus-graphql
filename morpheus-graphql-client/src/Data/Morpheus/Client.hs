@@ -13,6 +13,9 @@ module Data.Morpheus.Client
     DecodeScalar (..),
     EncodeScalar (..),
     ID (..),
+    toGlobalDefinitionsWith,
+    toLocalDefinitions,
+    printDeclarations,
     declareGlobalTypes,
     declareGlobalTypesByName,
     declareLocalTypes,
@@ -34,7 +37,10 @@ module Data.Morpheus.Client
 where
 
 import Data.Morpheus.Client.CodeGen.Declare
-  ( clientTypeDeclarations,
+  ( toGlobalDefinitionsWith,
+    toLocalDefinitions,
+    clientTypeDeclarations,
+    printDeclarations,
     declareGlobalTypes,
     declareGlobalTypesByName,
     declareLocalTypes,
