@@ -44,6 +44,7 @@ library:
   - Data.Morpheus.Client
   - Data.Morpheus.Client.CodeGen.AST
   - Data.Morpheus.Client.CodeGen.Internal
+  - Data.Morpheus.Client.CodeGen.Utils
 tests:
   morpheus-graphql-client-test:
     main: Spec.hs

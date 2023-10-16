@@ -8,6 +8,7 @@
 
 module Data.Morpheus.Client.CodeGen.Interpreting.Global
   ( toGlobalDefinitions,
+    toGlobalDefinitionsWith,
   )
 where
 
@@ -57,16 +58,19 @@ toClientDeclarations def@ClientTypeDefinition {clientKind}
     cgType = printClientType def
 
 toGlobalDefinitions :: (TypeName -> Bool) -> Schema VALID -> GQLResult ([ClientDeclaration], Flags)
-toGlobalDefinitions f Schema {types} = do
+toGlobalDefinitions f = toGlobalDefinitionsWith (f . typeName)
+
+toGlobalDefinitionsWith :: (TypeDefinition ANY VALID -> Bool) -> Schema VALID -> GQLResult ([ClientDeclaration], Flags)
+toGlobalDefinitionsWith f Schema{types} = do
   let tyDefs = mapMaybe generateGlobalType $ filter shouldInclude (sortWith typeName $ toList types)
   decs <- traverse mapPreDeclarations $ concatMap toClientDeclarations tyDefs
   let hasEnums = not $ null [x | x@ClientTypeDefinition {clientKind = KIND_ENUM} <- tyDefs]
   pure (decs, [FlagLanguageExtension "LambdaCase" | hasEnums])
   where
     shouldInclude t =
-      not (isResolverType t)
-        && isNotSystemTypeName (typeName t)
-        && f (typeName t)
+        not (isResolverType t)
+            && isNotSystemTypeName (typeName t)
+            && f t
 
 generateGlobalType :: TypeDefinition ANY VALID -> Maybe ClientTypeDefinition
 generateGlobalType TypeDefinition {typeName, typeContent} = do
