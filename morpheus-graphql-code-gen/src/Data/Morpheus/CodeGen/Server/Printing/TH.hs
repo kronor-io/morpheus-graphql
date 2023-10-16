@@ -16,7 +16,7 @@ import Data.Morpheus.CodeGen.Server.Internal.AST
   )
 import Data.Morpheus.CodeGen.Internal.AST
   ( TypeClassInstance (..),
-    CodeGenTypeName (..),
+    CodeGenTypeName,
     getFullName,
   )
 import Data.Morpheus.CodeGen.Server.Interpreting.Transform
