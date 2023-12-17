@@ -11,7 +11,7 @@ import Control.Monad.Except (MonadError (throwError))
 import Data.Aeson
   ( encode,
   )
-import Data.Aeson.Internal
+import Data.Aeson.Types
   ( formatError,
     ifromJSON,
   )
