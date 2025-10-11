@@ -4,6 +4,7 @@ module Data.Morpheus.CodeGen.Server
   ( CodeGenConfig (..),
     PrinterConfig (..),
     gqlDocument,
+    printServerDec,
     importServerTypeDefinitions,
   )
 where
@@ -18,6 +19,7 @@ import Data.Morpheus.CodeGen.Server.Internal.AST
 import Data.Morpheus.CodeGen.Server.Printing.TH
   ( compileDocument,
     gqlDocument,
+    printServerDec,
   )
 import Language.Haskell.TH (Dec, Q, runIO)
 import Language.Haskell.TH.Syntax

@@ -6,6 +6,7 @@
 module Data.Morpheus.CodeGen.Server.Printing.TH
   ( compileDocument,
     gqlDocument,
+    printServerDec
   )
 where
 
