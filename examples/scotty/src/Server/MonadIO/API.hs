@@ -39,8 +39,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Tuple.Extra (both)
 import Network.HTTP.Types (Status (..))
-import Web.Scotty
 import Prelude hiding (id)
+import Web.Scotty hiding (Session)
 
 importGQLDocument "src/Server/MonadIO/schema.graphql"
 

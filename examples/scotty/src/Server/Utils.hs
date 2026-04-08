@@ -44,7 +44,7 @@ import Web.Scotty
     ScottyM,
     body,
     get,
-    param,
+    pathParam,
     post,
     raw,
     scottyApp,
@@ -52,7 +52,7 @@ import Web.Scotty
 import Prelude
 
 isSchema :: ActionM String
-isSchema = param "schema"
+isSchema = pathParam "schema"
 
 httpEndpoint ::
   ( SubApp ServerApp e,
