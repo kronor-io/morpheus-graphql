@@ -1,12 +1,16 @@
 {
   "errors": [
     {
-      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found {}. Exclusive input objects must provide a value for at least one field.",
+      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found {}. Exactly one key must be specified.",
       "locations": [{ "line": 2, "column": 22 }]
     },
     {
-      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found { Hydra: { name: \"someName\", age: 12 }, UnidentifiedMonster: Unit }. Exclusive input objects are not allowed to provide values for multiple fields.",
+      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found { Hydra: { name: \"someName\", age: 12 }, UnidentifiedMonster: Unit }. Exactly one key must be specified.",
       "locations": [{ "line": 4, "column": 5 }]
+    },
+    {
+      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found { Hydra: null }. Value for member field \"Hydra\" must be non-null.",
+      "locations": [{ "line": 6, "column": 28 }]
     }
   ]
 }

@@ -21,6 +21,7 @@ import qualified Feature.Inference.TaggedArguments as TaggedArguments
 import qualified Feature.Inference.TaggedArgumentsFail as TaggedArgumentsFail
 import qualified Feature.Inference.TypeGuards as TypeGuards
 import qualified Feature.Inference.TypeInference as TypeInference
+import qualified Feature.Inference.TypeInferenceRendering as TypeInferenceRendering
 import qualified Feature.Inference.UnionType as UnionType
 import qualified Feature.Inference.WrappedType as WrappedType
 import qualified Feature.Input.Collections as Collections
@@ -92,6 +93,7 @@ main =
           (FieldVisitor.api, "field-visitor"),
           (TypeVisitor.api, "type-visitor")
         ],
+      pure TypeInferenceRendering.testSchemaRendering,
       testFeatures
         "NamedResolvers"
         [(NamedResolvers.api, "tests")]

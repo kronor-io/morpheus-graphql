@@ -1,0 +1,4 @@
+query Test($hydraNull: Hydra, $hydraMissing: Hydra) {
+  missingVarMember: showMonster(monster: { Hydra: $hydraMissing })
+  nullVarMember: showMonster(monster: { Hydra: $hydraNull })
+}

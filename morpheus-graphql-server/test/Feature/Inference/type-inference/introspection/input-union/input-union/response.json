@@ -3,6 +3,7 @@
     "__type": {
       "kind": "INPUT_OBJECT",
       "name": "Monster",
+      "isOneOf": true,
       "fields": null,
       "inputFields": [
         {
@@ -10,6 +11,7 @@
           "type": {
             "kind": "INPUT_OBJECT",
             "name": "Hydra",
+            "isOneOf": false,
             "ofType": null
           },
           "defaultValue": null
@@ -19,6 +21,7 @@
           "type": {
             "kind": "INPUT_OBJECT",
             "name": "Cerberus",
+            "isOneOf": false,
             "ofType": null
           },
           "defaultValue": null
@@ -28,6 +31,7 @@
           "type": {
             "kind": "ENUM",
             "name": "Unit",
+            "isOneOf": null,
             "ofType": null
           },
           "defaultValue": null

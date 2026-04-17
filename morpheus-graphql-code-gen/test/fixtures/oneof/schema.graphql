@@ -1,0 +1,8 @@
+input UserBy @oneOf {
+  id: ID
+  email: String
+}
+
+type Query {
+  noop(by: UserBy): String
+}

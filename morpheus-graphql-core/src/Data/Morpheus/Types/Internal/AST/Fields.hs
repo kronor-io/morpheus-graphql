@@ -30,6 +30,7 @@ module Data.Morpheus.Types.Internal.AST.Fields
     Directives,
     Directive (..),
     fieldVisibility,
+    lookupDirective,
     lookupDeprecated,
     lookupDeprecatedReason,
     unsafeFromFields,
@@ -210,7 +211,10 @@ instance RenderGQL (DirectiveDefinition s) where
       <> newline
 
 lookupDeprecated :: Directives s -> Maybe (Directive s)
-lookupDeprecated = lookup "deprecated"
+lookupDeprecated = lookupDirective "deprecated"
+
+lookupDirective :: FieldName -> Directives s -> Maybe (Directive s)
+lookupDirective = lookup
 
 lookupDeprecatedReason :: Directive s -> Maybe Description
 lookupDeprecatedReason Directive {directiveArgs} =

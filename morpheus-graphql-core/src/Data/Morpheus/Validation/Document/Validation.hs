@@ -32,6 +32,7 @@ import Data.Morpheus.Types.Internal.AST
     DataEnumValue (..),
     DirectiveDefinition (..),
     DirectiveLocation (..),
+    Directives,
     FieldContent (..),
     FieldDefinition (..),
     FieldName,
@@ -48,6 +49,8 @@ import Data.Morpheus.Types.Internal.AST
     UnionMember (..),
     VALID,
     Value,
+    isNullable,
+    lookupDirective,
   )
 import Data.Morpheus.Types.Internal.AST.Error (GQLError)
 import Data.Morpheus.Types.Internal.AST.Name (Name, isValidName)
@@ -124,11 +127,19 @@ instance TypeCheck (TypeDefinition cat) where
         typeContent
       } =
       inType typeName
-        $ TypeDefinition
-          typeDescription
-        <$> checkName typeName
-        <*> validateDirectives (typeDirectiveLocation typeContent) typeDirectives
-        <*> typeCheck typeContent
+        $ (,,)
+          <$> checkName typeName
+          <*> validateDirectives (typeDirectiveLocation typeContent) typeDirectives
+          <*> typeCheck typeContent
+        >>= \(checkedName, checkedDirectives, checkedContent) -> do
+          finalContent <- validateOneOfType checkedDirectives checkedContent
+          pure
+            TypeDefinition
+              { typeName = checkedName,
+                typeDescription,
+                typeDirectives = checkedDirectives,
+                typeContent = finalContent
+              }
 
 checkName :: (MonadError GQLError f) => Name t -> f (Name t)
 checkName name
@@ -140,7 +151,7 @@ typeDirectiveLocation DataObject {} = LOCATION_OBJECT
 typeDirectiveLocation DataInputObject {} = LOCATION_INPUT_OBJECT
 typeDirectiveLocation DataScalar {} = LOCATION_SCALAR
 typeDirectiveLocation DataEnum {} = LOCATION_ENUM
-typeDirectiveLocation DataInputUnion {} = LOCATION_OBJECT
+typeDirectiveLocation DataInputUnion {} = LOCATION_INPUT_OBJECT
 typeDirectiveLocation DataUnion {} = LOCATION_UNION
 typeDirectiveLocation DataInterface {} = LOCATION_INTERFACE
 
@@ -227,3 +238,24 @@ instance TypeCheck DataEnumValue where
 instance TypeCheck (UnionMember cat) where
   type TypeContext (UnionMember cat) = TypeEntity ON_TYPE
   typeCheck UnionMember {..} = pure UnionMember {..}
+
+validateOneOfType ::
+  Directives VALID ->
+  TypeContent TRUE cat VALID ->
+  SchemaValidator (TypeEntity ON_TYPE) (TypeContent TRUE cat VALID)
+validateOneOfType directives content@DataInputObject {inputObjectFields}
+  | isJust (lookupDirective "oneOf" directives) = do
+      traverse_ validateOneOfField inputObjectFields
+      pure content
+validateOneOfType _ content = pure content
+
+validateOneOfField ::
+  FieldDefinition IN VALID ->
+  SchemaValidator (TypeEntity ON_TYPE) ()
+validateOneOfField FieldDefinition {fieldName, fieldType, fieldContent} =
+  inField fieldName $ do
+    unless (isNullable fieldType) $
+      throwError "OneOf Input Object fields must be nullable."
+    case fieldContent of
+      Nothing -> pure ()
+      Just _ -> throwError "OneOf Input Object fields cannot define default values."

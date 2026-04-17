@@ -64,6 +64,12 @@
           "name": "include"
         },
         {
+          "args": [],
+          "description": "\nThe `@oneOf` _built-in directive_ is used within the type system definition language to indicate an _Input Object_ is a _OneOf Input Object_.\n",
+          "locations": ["INPUT_OBJECT"],
+          "name": "oneOf"
+        },
+        {
           "args": [
             {
               "defaultValue": null,

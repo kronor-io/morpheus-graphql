@@ -1,0 +1,11 @@
+{
+  "hydraNull": null,
+  "monsterMulti": {
+    "Hydra": { "name": "someName", "age": 12 },
+    "UnidentifiedMonster": "Unit"
+  },
+  "monsterEmpty": {},
+  "monsterNullMember": {
+    "Hydra": null
+  }
+}

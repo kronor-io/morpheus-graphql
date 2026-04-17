@@ -1,0 +1,12 @@
+{
+  "errors": [
+    {
+      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found null. Value for member field \"Hydra\" must be non-null.",
+      "locations": [{ "line": 2, "column": 33 }]
+    },
+    {
+      "message": "Argument \"monster\" got invalid value. Expected type \"Monster!\" found null. Value for member field \"Hydra\" must be non-null.",
+      "locations": [{ "line": 3, "column": 30 }]
+    }
+  ]
+}

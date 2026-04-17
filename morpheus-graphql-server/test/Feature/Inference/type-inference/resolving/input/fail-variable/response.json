@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "Variable \"$monsterMulti\" got invalid value. Expected type \"Monster!\" found { Hydra: { age: 12, name: \"someName\" }, UnidentifiedMonster: \"Unit\" }. Exactly one key must be specified.",
+      "locations": [{ "line": 4, "column": 3 }]
+    },
+    {
+      "message": "Variable \"$monsterEmpty\" got invalid value. Expected type \"Monster!\" found {}. Exactly one key must be specified.",
+      "locations": [{ "line": 5, "column": 3 }]
+    },
+    {
+      "message": "Variable \"$monsterNullMember\" got invalid value. Expected type \"Monster!\" found { Hydra: null }. Value for member field \"Hydra\" must be non-null.",
+      "locations": [{ "line": 6, "column": 3 }]
+    }
+  ]
+}

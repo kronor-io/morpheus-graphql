@@ -105,10 +105,11 @@ instance (Meta a) => Meta (Maybe a) where
 instance Meta (TypeDefinition c CONST) where
   getDirs TypeDefinition {typeContent, typeDirectives, typeDescription} = do
     contentD <- getDirs typeContent
-    typeD <- traverse transform (toList typeDirectives)
+    typeD <- traverse transform (filter notCodeGenInternalDirective $ toList typeDirectives)
     pure (contentD <> typeD <> map TypeDirectiveUsage (descDirective typeDescription))
     where
       transform v = TypeDirectiveUsage <$> directiveTypeValue v
+      notCodeGenInternalDirective Directive {directiveName} = directiveName /= "oneOf"
 
 instance Meta (TypeContent a c CONST) where
   getDirs DataObject {objectFields} = getDirs objectFields

@@ -61,7 +61,7 @@ import Data.Morpheus.Types.Internal.AST
     Value (..),
     fieldVisibility,
     internal,
-    kindOf,
+    lookupDirective,
     lookupDeprecated,
     lookupDeprecatedReason,
     mkInputUnionFields,
@@ -131,7 +131,12 @@ instance RenderI (TypeDefinition c VALID) where
   renderI TypeDefinition {..} = renderContent typeContent
     where
       __type :: (MonadResolver m) => TypeKind -> [IField m] -> IValue m
-      __type kind = __Type kind typeName typeDescription
+      __type kind = __Type kind typeName typeDescription isOneOf
+        where
+          isOneOf = case typeContent of
+            DataInputObject {} -> Just (isJust (lookupDirective "oneOf" typeDirectives))
+            DataInputUnion {} -> Just True
+            _ -> Nothing
       renderContent :: (MonadResolver m) => TypeContent bool a VALID -> IValue m
       renderContent DataScalar {} = __type KIND_SCALAR []
       renderContent (DataEnum enums) = __type KIND_ENUM [("enumValues", renderI enums)]
@@ -144,6 +149,7 @@ instance RenderI (TypeDefinition c VALID) where
           (KIND_OBJECT Nothing)
           typeName
           typeDescription
+          Nothing
           [ ("fields", renderI objectFields),
             ("interfaces", traverse (getType >=> assertINTERFACE) objectImplements >>= renderI)
           ]
@@ -161,6 +167,7 @@ instance RenderI (TypeDefinition c VALID) where
               )
               <> typeDescription
           )
+          (Just True)
           [ ( "inputFields",
               renderI (mkInputUnionFields members)
             )
@@ -224,10 +231,7 @@ instance RenderI TypeRef where
     where
       renderWrapper (TypeList nextWrapper isNonNull) =
         withNonNull isNonNull $ wrapper KIND_LIST (renderWrapper nextWrapper)
-      renderWrapper (BaseType isNonNull) =
-        withNonNull isNonNull $ do
-          kind <- kindOf <$> getType typeConName
-          __Type kind typeConName Nothing []
+      renderWrapper (BaseType isNonNull) = withNonNull isNonNull (getType typeConName >>= renderI)
 
 withNonNull :: (MonadResolver m) => Bool -> IValue m -> IValue m
 withNonNull True = wrapper KIND_NON_NULL
@@ -238,14 +242,16 @@ __Type ::
   TypeKind ->
   Name t ->
   Maybe Description ->
+  Maybe Bool ->
   [IField m] ->
   IValue m
-__Type kind name desc etc =
+__Type kind name desc isOneOf etc =
   object
     "__Type"
     ( [ fKind kind,
         fName name,
-        fDescription desc
+        fDescription desc,
+        fIsOneOf isOneOf
       ]
         <> etc
     )
@@ -255,6 +261,7 @@ wrapper k t =
   object
     "__Type"
     [ fKind k,
+      fIsOneOf Nothing,
       ("ofType", t)
     ]
 
@@ -275,6 +282,9 @@ fName = ("name",) . renderI
 
 fKind :: (MonadResolver m) => TypeKind -> IField m
 fKind = ("kind",) . renderI
+
+fIsOneOf :: (MonadResolver m) => Maybe Bool -> IField m
+fIsOneOf = ("isOneOf",) . renderI
 
 fType :: (MonadResolver m) => TypeRef -> IField m
 fType = ("type",) . renderI

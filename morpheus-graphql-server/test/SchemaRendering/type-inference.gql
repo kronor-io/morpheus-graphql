@@ -1,0 +1,72 @@
+enum Power {
+  Thunderbolts
+  Shapeshift
+  Hurricanes
+}
+
+enum Unit {
+  Unit
+}
+
+input Cerberus {
+  name: String!
+}
+
+input Hydra {
+  name: String!
+  age: Int!
+}
+
+input Monster @oneOf {
+  Hydra: Hydra
+  Cerberus: Cerberus
+  UnidentifiedMonster: Unit
+}
+
+type BoxedDeity {
+  boxedDeity: Deity!
+}
+
+type CharacterAge {
+  _0: Int!
+}
+
+type Creature {
+  creatureName: String!
+  creatureAge: Int!
+}
+
+type Cronus {
+  _: Unit!
+}
+
+type Deity {
+  name: String!
+  power: Power!
+}
+
+type ScalarRecord {
+  scalarText: String!
+}
+
+type SomeCompound {
+  _0: Int!
+  _1: String!
+}
+
+type SomeDeity {
+  _0: Deity!
+}
+
+type Zeus {
+  _: Unit!
+}
+
+union Character = Deity | Creature | BoxedDeity | ScalarRecord | CharacterAge | SomeDeity | SomeCompound | Zeus | Cronus
+
+type Query {
+  deity: Deity!
+  character: [Character!]!
+  showMonster(monster: Monster!): String!
+  unitType: Unit!
+}

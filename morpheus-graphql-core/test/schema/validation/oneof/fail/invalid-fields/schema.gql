@@ -1,0 +1,8 @@
+input UserUniqueCondition @oneOf {
+  id: ID!
+  username: String = "name"
+}
+
+type Query {
+  user(by: UserUniqueCondition): String
+}

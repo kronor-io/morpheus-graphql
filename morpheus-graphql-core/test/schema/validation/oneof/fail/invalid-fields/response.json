@@ -1,0 +1,8 @@
+[
+  {
+    "message": "OneOf Input Object fields cannot define default values."
+  },
+  {
+    "message": "OneOf Input Object fields must be nullable."
+  }
+]

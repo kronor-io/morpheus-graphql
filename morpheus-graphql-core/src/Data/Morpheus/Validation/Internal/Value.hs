@@ -51,6 +51,7 @@ import Data.Morpheus.Types.Internal.AST
     atPositions,
     isNullable,
     isSubtype,
+    lookupDirective,
     mkMaybeType,
     mkTypeRef,
     msg,
@@ -158,6 +159,9 @@ validateWrapped (TypeList wrappers _) tyCont singleElem =
   List . pure <$> validateInputByType wrappers tyCont singleElem
 {-- 2. VALIDATE TYPES, all wrappers are already Processed --}
 {-- VALIDATE OBJECT--}
+validateWrapped BaseType {} TypeDefinition {typeContent = DataInputObject parentFields, typeDirectives} entryValue
+  | isJust (lookupDirective "oneOf" typeDirectives) =
+      validateOneOfInputObject parentFields entryValue
 validateWrapped BaseType {} TypeDefinition {typeContent} entryValue =
   validateUnwrapped typeContent entryValue
 
@@ -194,7 +198,10 @@ validateInputUnionMember ::
   InputValidator schemaS ctx (Value VALID)
 validateInputUnionMember member value = do
   inputDef <- askDef
-  mkInputUnionValue member <$> validateInputByType mkMaybeType inputDef value
+  validated <- validateInputByType mkMaybeType inputDef value
+  when (validated == Null) $
+    violation (Just $ "Value for member field " <> msg member <> " must be non-null.") validated
+  pure (mkInputUnionValue member validated)
   where
     askDef
       | nullary member = askType (Typed $ mkTypeRef unitTypeName)
@@ -221,6 +228,26 @@ validateInputObject ::
 validateInputObject fieldsDef object =
   traverse_ (`selectKnown` fieldsDef) object
     *> traverse (validateWithDefault object) fieldsDef
+
+validateOneOfInputObject ::
+  (ValidateWithDefault ctx schemaS valueS) =>
+  FieldsDefinition IN schemaS ->
+  Value valueS ->
+  InputValidator schemaS ctx ValidValue
+validateOneOfInputObject fieldsDef (Object object) = do
+  field@ObjectEntry {entryName, entryValue} <-
+    case toList object of
+      [] -> violation (Just "OneOf Input Objects must specify exactly one field.") (Object object)
+      [selectedField] -> pure selectedField
+      _ -> violation (Just "OneOf Input Objects are not allowed to provide values for multiple fields.") (Object object)
+  when (entryValue == Null) $
+    violation (Just "OneOf Input Object fields must be non-null.") (Object object)
+  fieldDef <- selectKnown field fieldsDef
+  validated <- validateValueByField fieldDef entryValue
+  when (validated == Null) $
+    violation (Just $ "Value for member field " <> msg (coerce entryName :: TypeName) <> " must be non-null.") validated
+  pure $ Object $ singleton entryName (ObjectEntry entryName validated)
+validateOneOfInputObject _ value = violation Nothing value
 
 class ValidateWithDefault c schemaS s where
   validateWithDefault ::

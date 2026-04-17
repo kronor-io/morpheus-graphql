@@ -3,4 +3,5 @@
   multiple: showMonster(
     monster: { Hydra: { name: "someName", age: 12 }, UnidentifiedMonster: Unit }
   )
+  nullLiteral: showMonster(monster: { Hydra: null })
 }

@@ -722,7 +722,7 @@ instance RenderGQL (TypeDefinition a s) where
           <> " = "
           <> renderMembers members
       __render (DataInputObject fields) = "input " <> name <> renderGQL fields
-      __render (DataInputUnion members) = "input " <> name <> renderGQL fields
+      __render (DataInputUnion members) = "input " <> name <> " @oneOf" <> renderGQL fields
         where
           fields = mkInputUnionFields members
       __render DataObject {objectFields} = "type " <> name <> renderGQL objectFields

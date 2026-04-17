@@ -27,6 +27,7 @@ import Data.Morpheus.CodeGen.Internal.AST
     fromTypeName,
     getFullName,
   )
+import qualified Data.Morpheus.CodeGen.Internal.AST as CG
 import Data.Morpheus.CodeGen.Server.Internal.AST
   ( CodeGenConfig (..),
     DerivingClass (..),
@@ -74,6 +75,7 @@ import Data.Morpheus.Types.Internal.AST
     CONST,
     DataEnumValue (..),
     DirectiveDefinition (..),
+    Directives,
     FieldContent (..),
     FieldDefinition (..),
     FieldName,
@@ -88,6 +90,7 @@ import Data.Morpheus.Types.Internal.AST
     TypeName,
     TypeRef (..),
     UnionMember (..),
+    lookupDirective,
     isNullable,
     isPossibleInterfaceType,
     isResolverType,
@@ -186,12 +189,12 @@ genTypeDefinition ::
   TypeDefinition ANY CONST ->
   m [ServerDeclaration]
 genTypeDefinition
-  typeDef@TypeDefinition {typeName = originalTypeName, typeContent} =
+  typeDef@TypeDefinition {typeName = originalTypeName, typeContent, typeDirectives} =
     case tKind of
       KIND_SCALAR -> do
         scalarGQLType <- deriveGQL
         pure [ScalarType (toHaskellTypeName typeName), scalarGQLType]
-      _ -> genTypeContent originalTypeName typeContent >>= withType
+      _ -> genTypeContent originalTypeName typeDirectives typeContent >>= withType
     where
       typeName
         | tKind == KIND_INTERFACE = mkInterfaceName originalTypeName
@@ -342,13 +345,50 @@ renderDataField FieldDefinition {fieldType = TypeRef {typeConName, typeWrappers}
   let fieldIsNullable = isNullable typeWrappers
   pure CodeGenField {..}
 
-genTypeContent :: (CodeGenM m) => TypeName -> TypeContent TRUE ANY CONST -> m BuildPlan
-genTypeContent _ DataScalar {} = pure (ConsIN [])
-genTypeContent _ (DataEnum tags) = ConsIN <$> traverse mkConsEnum tags
-genTypeContent typeName (DataInputObject fields) =
-  ConsIN . mkObjectCons typeName <$> traverse renderDataField (toList fields)
-genTypeContent _ DataInputUnion {} = fail "Input Unions not Supported"
-genTypeContent typeName DataInterface {interfaceFields} =
+mkInputUnionConstructor :: (CodeGenM m) => TypeName -> UnionMember IN CONST -> m CodeGenConstructor
+mkInputUnionConstructor typeName UnionMember {memberName, nullary}
+  | nullary =
+      pure
+        CodeGenConstructor
+          { constructorName = CodeGenTypeName [coerce typeName] [] memberName,
+            constructorFields = []
+          }
+  | otherwise = do
+      fieldType <- getFieldTypeName memberName
+      pure
+        CodeGenConstructor
+          { constructorName = CodeGenTypeName [coerce typeName] [] memberName,
+            constructorFields =
+              [ CodeGenField
+                  { fieldName = "_",
+                    fieldType,
+                    wrappers = [],
+                    fieldIsNullable = False
+                  }
+              ]
+          }
+
+mkOneOfInputObjectConstructor :: TypeName -> CodeGenField -> CodeGenConstructor
+mkOneOfInputObjectConstructor typeName field =
+  CodeGenConstructor
+    { constructorName = CodeGenTypeName [coerce typeName] [] (coerce $ CG.fieldName field),
+      constructorFields = [field {CG.fieldName = "_"}]
+    }
+
+isOneOfInputObject :: Directives CONST -> Bool
+isOneOfInputObject = isJust . lookupDirective "oneOf"
+
+genTypeContent :: (CodeGenM m) => TypeName -> Directives CONST -> TypeContent TRUE ANY CONST -> m BuildPlan
+genTypeContent _ _ DataScalar {} = pure (ConsIN [])
+genTypeContent _ _ (DataEnum tags) = ConsIN <$> traverse mkConsEnum tags
+genTypeContent typeName typeDirectives (DataInputObject fields)
+  | isOneOfInputObject typeDirectives =
+      ConsIN . map (mkOneOfInputObjectConstructor typeName) <$> traverse renderDataField (toList fields)
+  | otherwise =
+      ConsIN . mkObjectCons typeName <$> traverse renderDataField (toList fields)
+genTypeContent typeName _ DataInputUnion {inputUnionMembers} =
+  ConsIN <$> traverse (mkInputUnionConstructor typeName) (toList inputUnionMembers)
+genTypeContent typeName _ DataInterface {interfaceFields} =
   ConsOUT
     <$> ((<>) <$> genArgumentTypes interfaceFields <*> genInterfaceUnion typeName)
     <*> ( do
@@ -359,13 +399,13 @@ genTypeContent typeName DataInterface {interfaceFields} =
                   <$> traverse mkObjectField (toList interfaceFields)
               )
         )
-genTypeContent typeName DataObject {objectFields} =
+genTypeContent typeName _ DataObject {objectFields} =
   ConsOUT
     <$> genArgumentTypes objectFields
     <*> ( mkObjectCons typeName
             <$> traverse mkObjectField (toList objectFields)
         )
-genTypeContent typeName (DataUnion members) = do
+genTypeContent typeName _ (DataUnion members) = do
   ConsOUT [] <$> traverse unionCon (toList members)
   where
     unionCon UnionMember {memberName} = mkUnionFieldDefinition typeName memberName

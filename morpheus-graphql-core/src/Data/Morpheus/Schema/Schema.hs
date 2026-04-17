@@ -43,6 +43,11 @@ directive @deprecated(reason: String)
   on FIELD_DEFINITION | ENUM_VALUE
 
 
+"""
+The `@oneOf` _built-in directive_ is used within the type system definition language to indicate an _Input Object_ is a _OneOf Input Object_.
+"""
+directive @oneOf on INPUT_OBJECT
+
 scalar Boolean
 scalar Int
 scalar Float
@@ -79,6 +84,9 @@ type __Type {
 
   # NON_NULL and LIST only
   ofType: __Type
+
+  # must be non-null for INPUT_OBJECT, otherwise null.
+  isOneOf: Boolean
 }
 
 type __Field {

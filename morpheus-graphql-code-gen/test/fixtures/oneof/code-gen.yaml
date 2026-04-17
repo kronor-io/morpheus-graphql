@@ -1,0 +1,5 @@
+server:
+  - name: OneOf
+    source: .
+    includes:
+      - path: schema.graphql

@@ -95,9 +95,14 @@ instance KeyOf TypeName (UnionMember cat s) where
 getInputUnionValue :: (MonadError GQLError m) => Object stage -> m (TypeName, Value stage)
 getInputUnionValue hm =
   case toList hm of
-    [] -> throwError "Exclusive input objects must provide a value for at least one field."
+    [] -> throwError "Exactly one key must be specified."
+    [ObjectEntry name Null] ->
+      throwError
+        $ "Value for member field "
+        <> msg (coerce name :: TypeName)
+        <> " must be non-null."
     [ObjectEntry name value] -> pure (coerce name, value)
-    _ -> throwError "Exclusive input objects are not allowed to provide values for multiple fields."
+    _ -> throwError "Exactly one key must be specified."
 
 constraintInputUnion ::
   forall stage schemaStage.

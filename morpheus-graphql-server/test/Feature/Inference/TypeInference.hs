@@ -7,6 +7,7 @@
 
 module Feature.Inference.TypeInference
   ( api,
+    proxy,
   )
 where
 
@@ -25,6 +26,7 @@ import Data.Text
     pack,
   )
 import GHC.Generics (Generic)
+import Data.Proxy (Proxy(..))
 
 data Power
   = Thunderbolts
@@ -107,3 +109,6 @@ rootResolver =
 
 api :: GQLRequest -> IO GQLResponse
 api = interpreter rootResolver
+
+proxy :: Proxy (RootResolver IO () Query Undefined Undefined)
+proxy = Proxy

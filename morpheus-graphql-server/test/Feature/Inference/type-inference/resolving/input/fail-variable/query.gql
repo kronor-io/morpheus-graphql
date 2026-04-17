@@ -1,0 +1,13 @@
+query Test(
+  $hydraNull: Hydra
+  $hydraMissing: Hydra
+  $monsterMulti: Monster!
+  $monsterEmpty: Monster!
+  $monsterNullMember: Monster!
+) {
+  missingVarMember: showMonster(monster: { Hydra: $hydraMissing })
+  nullVarMember: showMonster(monster: { Hydra: $hydraNull })
+  multipleVar: showMonster(monster: $monsterMulti)
+  emptyVar: showMonster(monster: $monsterEmpty)
+  nullMemberVar: showMonster(monster: $monsterNullMember)
+}

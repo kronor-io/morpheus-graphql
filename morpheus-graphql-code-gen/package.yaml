@@ -44,3 +44,17 @@ executables:
       morpheus-graphql-code-gen-utils: '>=  0.28.0  &&  <  0.29.0'
       optparse-applicative: '           >=  0.12.0  &&  <  1.0.0'
       yaml: '                           >=  0.8.32  &&  <  1.0.0'
+tests:
+  morpheus-graphql-code-gen-test:
+    main: Spec.hs
+    source-dirs:
+    - test
+    - app
+    ghc-options: -Wall
+    dependencies:
+      filepath: '                       >=  1.1.0   &&  <  2.0.0'
+      morpheus-graphql-client: '        >=  0.28.0  &&  <  0.29.0'
+      morpheus-graphql-code-gen: '      >=  0.28.0  &&  <  0.29.0'
+      tasty: '                          >=  0.1.0   &&  <  2.0.0'
+      tasty-hunit: '                    >=  0.1.0   &&  <  1.0.0'
+      yaml: '                           >=  0.8.32  &&  <  1.0.0'

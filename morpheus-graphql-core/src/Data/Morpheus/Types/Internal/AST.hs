@@ -75,6 +75,7 @@ module Data.Morpheus.Types.Internal.AST
     mkTypeRef,
     mkInputUnionFields,
     fieldVisibility,
+    lookupDirective,
     lookupDeprecated,
     lookupDeprecatedReason,
     lookupWith,
