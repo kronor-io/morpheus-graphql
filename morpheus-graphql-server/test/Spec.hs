@@ -14,6 +14,7 @@ import qualified Feature.Collision.NameCollision as NameCollision
 import qualified Feature.Directive.Definition as DirectiveDefinition
 import qualified Feature.Directive.EnumVisitor as EnumVisitor
 import qualified Feature.Directive.FieldVisitor as FieldVisitor
+import qualified Feature.Directive.OneOfVisitor as OneOfVisitor
 import qualified Feature.Directive.TypeVisitor as TypeVisitor
 import qualified Feature.Inference.Names as Names
 import qualified Feature.Inference.ObjectAndEnum as ObjectAndEnum
@@ -91,6 +92,7 @@ main =
         [ (DirectiveDefinition.api, "definition"),
           (EnumVisitor.api, "enum-visitor"),
           (FieldVisitor.api, "field-visitor"),
+          (OneOfVisitor.api, "oneof-visitor"),
           (TypeVisitor.api, "type-visitor")
         ],
       pure TypeInferenceRendering.testSchemaRendering,

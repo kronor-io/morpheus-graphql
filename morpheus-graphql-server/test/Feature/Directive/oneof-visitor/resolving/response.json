@@ -1,0 +1,7 @@
+{
+  "data": {
+    "byId": "UserIdInput {idValue = 1}",
+    "byEmail": "UserEmailInput {emailValue = \"test@example.com\"}",
+    "byUsername": "UserLegacyInput {legacyValue = \"legacy-user\"}"
+  }
+}

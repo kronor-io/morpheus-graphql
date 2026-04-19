@@ -34,6 +34,9 @@ import Data.Morpheus.Server.Deriving.Utils.Use
     UseGQLType (..),
     UseGQLValue (..),
   )
+import Data.Morpheus.Server.Deriving.Internal.Directive
+  ( visitConstructorName,
+  )
 import Data.Morpheus.Types.Internal.AST
   ( FieldName,
     TypeName,
@@ -50,7 +53,8 @@ data Context = Context
   { isVariantRef :: Bool,
     typeName :: TypeName,
     enumVisitor :: TypeName -> TypeName,
-    fieldVisitor :: FieldName -> FieldName
+    fieldVisitor :: FieldName -> FieldName,
+    variantVisitor :: TypeName -> TypeName
   }
 
 type DecoderT = ReaderT Context ResolverState
@@ -85,13 +89,14 @@ instance (UseGQLType ctx gql, DescribeCons gql a, DescribeCons gql b, DecodeRep 
   decodeRep ctx input =
     do
       typename <- asks typeName
-      let (kind, (left, right)) = getUnionTags ctx typename (Proxy @(a :+: b))
+      variantNameVisitor <- asks variantVisitor
+      let (kind, (left, right)) = getUnionTags ctx variantNameVisitor typename (Proxy @(a :+: b))
       (lr, name, value) <-
         case input of
           (Object obj) -> do
             (name, value) <- getInputUnionValue obj
             variant <- coerceInputObject value
-            let isDone = [name] == left || [name] == left
+            let isDone = [name] == left || [name] == right
             pure ((left, right), name, if isDone then Object variant else input)
           (Enum name) -> do
             visitor <- asks enumVisitor
@@ -116,10 +121,11 @@ getUnionTags ::
   forall ctx f a b gql.
   (UseGQLType ctx gql, DescribeCons gql a, DescribeCons gql b) =>
   ctx ->
+  (TypeName -> TypeName) ->
   TypeName ->
   f (a :+: b) ->
   (Bool, ([TypeName], [TypeName]))
-getUnionTags ctx typename _ = do
+getUnionTags ctx variantNameVisitor typename _ = do
   let left = map toInfo (describeCons (Proxy @a))
   let right = map toInfo (describeCons (Proxy @b))
   let varRef = find snd (left <> right)
@@ -128,7 +134,7 @@ getUnionTags ctx typename _ = do
     toInfo :: (TypeName, Maybe (CProxy gql)) -> (TypeName, Bool)
     toInfo (consName, Just (CProxy p))
       | consName == typename <> typeVariant = (typeVariant, True)
-      | otherwise = (consName, False)
+      | otherwise = (variantNameVisitor consName, False)
       where
         typeVariant = useTypename ctx (inputType p)
-    toInfo (consName, Nothing) = (consName, False)
+    toInfo (consName, Nothing) = (variantNameVisitor consName, False)

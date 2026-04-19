@@ -24,6 +24,7 @@ module Data.Morpheus.Server.Deriving.Internal.Directive
     visitFieldContent,
     visitEnumName,
     visitFieldName,
+    visitConstructorName,
     toFieldRes,
     UseDeriving (..),
     deriveDirectiveDefinition,
@@ -59,6 +60,7 @@ import Data.Morpheus.Server.Types.Directives
     applyFieldDefaultValue,
     applyFieldDescription,
     applyFieldName,
+    applyTypeName,
     applyTypeDescription,
     applyTypeEnumNames,
     applyTypeFieldNames,
@@ -169,6 +171,14 @@ visitArgument ctx x Argument {..} = Argument {argumentName = visitFieldName ctx 
 
 visitFieldName :: (gql a) => UseDeriving gql args -> f a -> FieldName -> FieldName
 visitFieldName options proxy name = foldr applyFieldName (visitTypeFieldNames options proxy name) (getFieldDirectives options proxy name)
+
+visitConstructorName :: (gql a) => UseDeriving gql args -> f a -> TypeName -> TypeName
+visitConstructorName options proxy name =
+  coerce
+    $ foldr
+      applyFieldName
+      (coerce $ foldr (`applyTypeName` True) name (getTypeDirectives options proxy))
+      (getFieldDirectives options proxy (coerce name))
 
 visitTypeFieldNames :: (gql a) => UseDeriving gql args -> f a -> FieldName -> FieldName
 visitTypeFieldNames ctx proxy name = foldr applyTypeFieldNames name (getTypeDirectives ctx proxy)

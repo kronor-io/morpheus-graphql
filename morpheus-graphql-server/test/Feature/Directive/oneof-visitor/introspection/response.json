@@ -1,0 +1,12 @@
+{
+  "data": {
+    "__type": {
+      "isOneOf": true,
+      "inputFields": [
+        { "name": "Id" },
+        { "name": "Email" },
+        { "name": "username" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  byId: describe(selector: { Id: { idValue: 1 } })
+  byEmail: describe(selector: { Email: { emailValue: "test@example.com" } })
+  byUsername: describe(selector: { username: { legacyValue: "legacy-user" } })
+}

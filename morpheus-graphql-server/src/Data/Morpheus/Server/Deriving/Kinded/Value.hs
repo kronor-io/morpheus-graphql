@@ -37,6 +37,7 @@ import Data.Morpheus.Internal.Utils
   )
 import Data.Morpheus.Server.Deriving.Internal.Directive
   ( visitEnumName,
+    visitConstructorName,
     visitFieldName,
   )
 import Data.Morpheus.Server.Deriving.Internal.Value
@@ -123,7 +124,8 @@ instance (ctx ~ UseDeriving gql args, gql a, Generic a, DecodeRep ctx (Rep a), G
           { isVariantRef = False,
             typeName = useTypename ctx (InputType :: CatType IN a),
             enumVisitor = visitEnumName ctx proxy,
-            fieldVisitor = visitFieldName ctx proxy
+            fieldVisitor = visitFieldName ctx proxy,
+            variantVisitor = visitConstructorName ctx proxy
           }
         where
           proxy = Proxy @a
@@ -147,7 +149,8 @@ instance (ctx ~ UseDeriving gql args, gql a, Generic a, DecodeRep ctx (Rep a), G
           { isVariantRef = False,
             typeName = useTypename ctx (InputType :: CatType IN a),
             enumVisitor = visitEnumName ctx proxy,
-            fieldVisitor = visitFieldName ctx proxy
+            fieldVisitor = visitFieldName ctx proxy,
+            variantVisitor = visitConstructorName ctx proxy
           }
         where
           proxy = Proxy @a
