@@ -69,6 +69,7 @@ import Data.Morpheus.Types.Internal.AST
     CONST,
     DataEnumValue (..),
     FieldDefinition (..),
+    IN,
     OUT,
     ScalarDefinition,
     TRUE,
@@ -142,11 +143,25 @@ toUnion ctx prx@InputType variantRefs inlineVariants = do
     (nullaryVariants, objectVariants) = partition null inlineVariants
     members =
       map mkUnionMember variantRefs
-        <> map (mkUnionMember . visitConstructorName ctx prx . consName) objectVariants
-        <> fmap (mkNullaryMember . visitConstructorName ctx prx . consName) nullaryVariants
+        <> map (mkInputUnionMember ctx prx False) objectVariants
+        <> fmap (mkInputUnionMember ctx prx True) nullaryVariants
 toUnion _ prx@OutputType unionRef unionCons = do
   variants <- fromElems (map mkUnionMember (unionRef <> map consName unionCons))
   pure (DataUnion variants, [UnionVariantsExtension (concat $ traverse (toOutputTypeVariants prx) unionCons)])
+
+mkInputUnionMember ::
+  (gql a) =>
+  UseDeriving gql args ->
+  CatType kind a ->
+  Bool ->
+  GRepCons (ArgumentsDefinition CONST) ->
+  UnionMember IN CONST
+mkInputUnionMember ctx prx isNullary GRepCons {consName} =
+  UnionMember
+    { memberName = visitConstructorName ctx prx consName,
+      nullary = isNullary,
+      memberDescription = visitFieldDescription ctx prx (coerce consName) Nothing
+    }
 
 toInputTypeVariants :: (gql a) => UseDeriving gql args -> CatType kind a -> GRepCons (ArgumentsDefinition CONST) -> [NodeTypeVariant]
 toInputTypeVariants ctx proxy GRepCons {consName, consFields} =

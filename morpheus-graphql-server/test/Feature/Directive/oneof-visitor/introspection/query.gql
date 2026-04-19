@@ -1,8 +1,10 @@
 {
   __type(name: "Selector") {
+    description
     isOneOf
     inputFields {
       name
+      description
     }
   }
 }

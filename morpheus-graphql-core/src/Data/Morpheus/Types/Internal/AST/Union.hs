@@ -36,6 +36,9 @@ import Data.Morpheus.Types.Internal.AST.Error
     Msg (..),
     msg,
   )
+import Data.Morpheus.Types.Internal.AST.Base
+  ( Description,
+  )
 import Data.Morpheus.Types.Internal.AST.Fields
   ( FieldDefinition (..),
     FieldsDefinition,
@@ -65,14 +68,15 @@ import Language.Haskell.TH.Syntax (Lift (..))
 import Relude hiding (empty)
 
 mkUnionMember :: TypeName -> UnionMember cat s
-mkUnionMember name = UnionMember name False
+mkUnionMember name = UnionMember name False Nothing
 
 mkNullaryMember :: TypeName -> UnionMember cat s
-mkNullaryMember name = UnionMember name True
+mkNullaryMember name = UnionMember name True Nothing
 
 data UnionMember (cat :: TypeCategory) (s :: Stage) = UnionMember
   { memberName :: TypeName,
-    nullary :: Bool
+    nullary :: Bool,
+    memberDescription :: Maybe Description
   }
   deriving (Show, Lift, Eq)
 
@@ -124,10 +128,10 @@ mkInputUnionFields :: (Foldable t) => t (UnionMember IN s) -> FieldsDefinition I
 mkInputUnionFields = unsafeFromFields . fmap mkInputUnionField . toList
 
 mkInputUnionField :: UnionMember IN s -> FieldDefinition IN s
-mkInputUnionField UnionMember {memberName, nullary} =
+mkInputUnionField UnionMember {memberName, nullary, memberDescription} =
   FieldDefinition
     { fieldName = coerce memberName,
-      fieldDescription = Nothing,
+      fieldDescription = memberDescription,
       fieldContent = Nothing,
       fieldType =
         TypeRef

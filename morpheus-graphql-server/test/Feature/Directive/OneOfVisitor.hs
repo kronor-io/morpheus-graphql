@@ -15,6 +15,7 @@ import Data.Kind (Type)
 import Data.Morpheus.Server (interpreter)
 import Data.Morpheus.Server.Types
   ( Arg (..),
+    Describe (..),
     GQLRequest,
     GQLResponse,
     GQLType (..),
@@ -38,8 +39,12 @@ data UserSelectorInput
 
 instance GQLType UserSelectorInput where
   directives _ =
-    typeDirective Prefixes {addPrefix = "", removePrefix = "User"}
+    typeDirective Describe {text = "Select a user by exactly one unique key"}
+      <> typeDirective Prefixes {addPrefix = "", removePrefix = "User"}
       <> typeDirective Suffixes {addSuffix = "", removeSuffix = "Input"}
+      <> fieldDirective' 'UserIdInput Describe {text = "Lookup by numeric id"}
+      <> fieldDirective' 'UserEmailInput Describe {text = "Lookup by email address"}
+      <> fieldDirective' 'UserLegacyInput Describe {text = "Lookup by legacy username"}
       <> fieldDirective' 'UserLegacyInput Rename {newName = "username"}
 
 data Query (m :: Type -> Type) = Query

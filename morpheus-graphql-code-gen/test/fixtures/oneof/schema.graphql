@@ -1,5 +1,8 @@
+"""Select a user by exactly one unique key"""
 input UserBy @oneOf {
+  """Lookup by numeric id"""
   id: ID
+  """Lookup by email address"""
   email: String
 }
 

@@ -77,6 +77,9 @@ testYamlCodeGen = do
   assertBool "expected sum constructor for email case" ("| UserByEmail" `isInfixOf` output)
   assertBool "oneOf type should not be rendered as a record" (not $ "data UserBy = UserBy\n  {" `isInfixOf` output)
   assertBool "built-in @oneOf should not emit an unresolved Haskell directive reference" (not $ "typeDirective OneOf" `isInfixOf` output)
+  assertBool "oneOf type description should be preserved in generated directives" ("typeDirective Describe {text = \"Select a user by exactly one unique key\"}" `isInfixOf` output)
+  assertBool "oneOf member field descriptions should be preserved in generated directives" ("fieldDirective \"id\" Describe {text = \"Lookup by numeric id\"}" `isInfixOf` output)
+  assertBool "oneOf member field descriptions should be preserved for all members" ("fieldDirective \"email\" Describe {text = \"Lookup by email address\"}" `isInfixOf` output)
 
 requireJust :: String -> Maybe a -> IO a
 requireJust message = maybe (assertFailure message >> undefined) pure

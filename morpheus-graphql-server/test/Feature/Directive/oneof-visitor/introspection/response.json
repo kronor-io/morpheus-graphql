@@ -1,11 +1,12 @@
 {
   "data": {
     "__type": {
+      "description": "Note! This input is an exclusive object,\ni.e., the customer can provide a value for only one field.Select a user by exactly one unique key",
       "isOneOf": true,
       "inputFields": [
-        { "name": "Id" },
-        { "name": "Email" },
-        { "name": "username" }
+        { "name": "Id", "description": "Lookup by numeric id" },
+        { "name": "Email", "description": "Lookup by email address" },
+        { "name": "username", "description": "Lookup by legacy username" }
       ]
     }
   }
