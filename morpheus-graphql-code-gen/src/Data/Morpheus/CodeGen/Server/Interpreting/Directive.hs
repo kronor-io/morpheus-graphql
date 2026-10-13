@@ -8,13 +8,15 @@
 
 module Data.Morpheus.CodeGen.Server.Interpreting.Directive
   ( getDirectives,
+    getOneOfDirectives,
     getNamespaceDirs,
     getDefaultValueDir,
     getRenameDir,
+    oneOfDerivedFieldName,
   )
 where
 
-import Data.Char (isUpper)
+import Data.Char (isUpper, toLower)
 import Data.Morpheus.CodeGen.Internal.AST
   ( PrintableValue (..),
     getFullName,
@@ -53,6 +55,7 @@ import Data.Morpheus.Types.Internal.AST
   )
 import qualified Data.Morpheus.Types.Internal.AST as AST
 import Data.Text (head)
+import qualified Data.Text as T
 import Relude hiding (ByteString, get, head)
 
 withDir :: (CodeGenM m) => [ServerDirectiveUsage] -> m [ServerDirectiveUsage]
@@ -94,6 +97,31 @@ dirDropNamespace name = TypeValueObject "DropNamespace" [("dropNamespace", TypeV
 
 dirRename :: Name t -> TypeValue
 dirRename name = TypeValueObject "Rename" [("newName", TypeValueString (unpackName name))]
+
+-- | directives of a oneOf input object generated as a sum type:
+-- field directives are keyed by the field name the server derives from the constructor
+-- (see 'oneOfConstructorName').
+getOneOfDirectives :: (CodeGenM m) => TypeDefinition c CONST -> m [ServerDirectiveUsage]
+getOneOfDirectives TypeDefinition {typeDirectives, typeDescription, typeContent} = do
+  typeD <- traverse (fmap TypeDirectiveUsage . directiveTypeValue) (toList typeDirectives)
+  fieldD <- concat <$> traverse fieldDirs (oneOfFields typeContent)
+  withDir (typeD <> map TypeDirectiveUsage (descDirective typeDescription) <> fieldD)
+  where
+    oneOfFields :: TypeContent b a CONST -> [FieldDefinition AST.IN CONST]
+    oneOfFields DataInputObject {inputObjectFields} = toList inputObjectFields
+    oneOfFields _ = []
+    fieldDirs FieldDefinition {fieldName, fieldDirectives, fieldDescription} = do
+      dirs <- traverse directiveTypeValue (toList fieldDirectives)
+      let derivedName = oneOfDerivedFieldName fieldName
+      let renameField = [dirRename fieldName | derivedName /= fieldName]
+      pure $ map (FieldDirectiveUsage derivedName) (renameField <> dirs <> descDirective fieldDescription)
+
+-- | the server derives the field name of a oneOf constructor
+-- by dropping the type name and lowercasing the first letter.
+oneOfDerivedFieldName :: FieldName -> FieldName
+oneOfDerivedFieldName = AST.packName . lowerFirst . unpackName
+  where
+    lowerFirst t = maybe t (\(x, xs) -> T.cons (toLower x) xs) (T.uncons t)
 
 class Meta a where
   getDirs :: (CodeGenM m) => a -> m [ServerDirectiveUsage]
@@ -156,6 +184,7 @@ getDirective directiveName = do
 
 renderDirectiveTypeName :: FieldName -> (Maybe TypeName, TypeName)
 renderDirectiveTypeName "deprecated" = (Nothing, "Deprecated")
+renderDirectiveTypeName "oneOf" = (Nothing, "OneOf")
 renderDirectiveTypeName name = (Just (coerce name), coerce name)
 
 renderArgumentValue ::

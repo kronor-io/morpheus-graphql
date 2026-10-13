@@ -41,6 +41,7 @@ import Data.Morpheus.CodeGen.Server.Interpreting.Directive
   ( getDefaultValueDir,
     getDirectives,
     getNamespaceDirs,
+    getOneOfDirectives,
     getRenameDir,
   )
 import Data.Morpheus.CodeGen.Server.Interpreting.Utils
@@ -87,7 +88,9 @@ import Data.Morpheus.Types.Internal.AST
     TypeKind (..),
     TypeName,
     TypeRef (..),
+    TypeWrapper (..),
     UnionMember (..),
+    hasOneOfDirective,
     isNullable,
     isPossibleInterfaceType,
     isResolverType,
@@ -102,8 +105,8 @@ parseServerTypeDefinitions ctx txt =
   case parseDefinitions txt of
     Failure errors -> fail (renderGQLErrors errors)
     Success {result, warnings} -> do
-        printWarnings warnings
-        first nub <$> toTHDefinitions (namespace ctx) result
+      printWarnings warnings
+      first nub <$> toTHDefinitions (namespace ctx) result
 
 getExternals :: [ServerDeclaration] -> Flags
 getExternals xs =
@@ -191,6 +194,20 @@ genTypeDefinition
       KIND_SCALAR -> do
         scalarGQLType <- deriveGQL
         pure [ScalarType (toHaskellTypeName typeName), scalarGQLType]
+      KIND_INPUT_OBJECT | hasOneOfDirective (typeDirectives typeDef) -> do
+        cgConstructors <- traverse (mkOneOfCons hsTypeName) (getInputFields typeDef)
+        namespaceDirs <- getNamespaceDirs (unpackName hsTypeName)
+        dirs <- getOneOfDirectives typeDef
+        renameDir <- getRenameDir originalTypeName hsTypeName
+        pure
+          [ DataType CodeGenType {..},
+            gqlTypeToInstance
+              GQLTypeDefinition
+                { gqlTarget = cgTypeName,
+                  gqlTypeDirectiveUses = renameDir <> namespaceDirs <> dirs,
+                  gqlKind = Type
+                }
+          ]
       _ -> genTypeContent originalTypeName typeContent >>= withType
     where
       typeName
@@ -369,6 +386,27 @@ genTypeContent typeName (DataUnion members) = do
   ConsOUT [] <$> traverse unionCon (toList members)
   where
     unionCon UnionMember {memberName} = mkUnionFieldDefinition typeName memberName
+
+-- | each field of a oneOf input object is a constructor with a single non-nullable field.
+-- e.g. @card: CardInput@ of @PaymentMethod@ becomes @PaymentMethodCard CardInput@.
+mkOneOfCons :: (CodeGenM m) => TypeName -> FieldDefinition IN CONST -> m CodeGenConstructor
+mkOneOfCons typeName FieldDefinition {fieldName, fieldType = TypeRef {typeConName, typeWrappers}} = do
+  fieldType <- getFieldTypeName typeConName
+  pure
+    CodeGenConstructor
+      { constructorName = CodeGenTypeName [coerce typeName] [] (coerce fieldName),
+        constructorFields =
+          [ CodeGenField
+              { fieldName = "_",
+                fieldType,
+                wrappers = [GQL_WRAPPER (toRequired typeWrappers)],
+                fieldIsNullable = False
+              }
+          ]
+      }
+  where
+    toRequired (BaseType _) = BaseType True
+    toRequired (TypeList elems _) = TypeList elems True
 
 mkUnionFieldDefinition :: (CodeGenM m) => TypeName -> TypeName -> m CodeGenConstructor
 mkUnionFieldDefinition typeName memberName = do
