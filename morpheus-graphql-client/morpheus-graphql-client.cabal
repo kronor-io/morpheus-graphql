@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.1.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 
@@ -32,6 +32,7 @@ data-files:
     test/Case/LocalGlobal/users1.gql
     test/Case/LocalGlobal/users2.gql
     test/Case/LowercaseTypeName/schema.gql
+    test/Case/OneOf/schema.gql
     test/Case/Scalar/schema.gql
     test/Case/Enum/response.json
     test/Case/Fragments/response.json
@@ -41,6 +42,8 @@ data-files:
     test/Case/LocalGlobal/users1.json
     test/Case/LocalGlobal/users2.json
     test/Case/LowercaseTypeName/response.json
+    test/Case/OneOf/response.json
+    test/Case/OneOf/schema.json
     test/Case/ResponseTypes/errors.json
     test/Case/ResponseTypes/errorsWithType.json
     test/Case/ResponseTypes/mutation.json
@@ -120,6 +123,8 @@ test-suite morpheus-graphql-client-test
       Case.LocalGlobal.Api
       Case.LocalGlobal.Test
       Case.LowercaseTypeName.Test
+      Case.OneOf.Introspection
+      Case.OneOf.Test
       Case.ResponseTypes.Test
       Case.Scalar.Test
       Spec.Utils

@@ -1,0 +1,13 @@
+input CardInput {
+  number: String!
+}
+
+input PaymentMethod @oneOf {
+  card: CardInput
+  swish: String
+  ids: [Int!]
+}
+
+type Query {
+  pay(method: PaymentMethod!): String!
+}

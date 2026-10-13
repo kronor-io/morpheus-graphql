@@ -12,6 +12,7 @@ import qualified Case.Github.Test as Github
 import qualified Case.Interface.Test as Interface
 import qualified Case.LocalGlobal.Test as LocalGlobal
 import qualified Case.LowercaseTypeName.Test as LowercaseTypeName
+import qualified Case.OneOf.Test as OneOf
 import qualified Case.ResponseTypes.Test as ResponseTypes
 import qualified Case.Scalar.Test as Scalar
 import Test.Tasty
@@ -35,5 +36,6 @@ main =
         Scalar.test,
         ResponseTypes.test,
         Github.test,
-        Fragments.test
+        Fragments.test,
+        OneOf.test
       ]
