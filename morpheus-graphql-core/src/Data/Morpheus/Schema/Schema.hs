@@ -42,6 +42,11 @@ Marks an element of a GraphQL schema as no longer supported.
 directive @deprecated(reason: String)
   on FIELD_DEFINITION | ENUM_VALUE
 
+"""
+Indicates exactly one field must be supplied and this field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
 
 scalar Boolean
 scalar Int
@@ -79,6 +84,9 @@ type __Type {
 
   # NON_NULL and LIST only
   ofType: __Type
+
+  # INPUT_OBJECT only
+  isOneOf: Boolean
 }
 
 type __Field {

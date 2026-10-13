@@ -1,0 +1,3 @@
+query {
+  pet(pet: { cat: null })
+}

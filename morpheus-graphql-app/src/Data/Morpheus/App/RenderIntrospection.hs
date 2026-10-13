@@ -60,6 +60,7 @@ import Data.Morpheus.Types.Internal.AST
     VALID,
     Value (..),
     fieldVisibility,
+    hasOneOfDirective,
     internal,
     kindOf,
     lookupDeprecated,
@@ -138,7 +139,9 @@ instance RenderI (TypeDefinition c VALID) where
       renderContent (DataInputObject inputFields) =
         __type
           KIND_INPUT_OBJECT
-          [("inputFields", renderI inputFields)]
+          [ ("inputFields", renderI inputFields),
+            ("isOneOf", renderI (hasOneOfDirective typeDirectives))
+          ]
       renderContent DataObject {objectImplements, objectFields} =
         __Type
           (KIND_OBJECT Nothing)
@@ -163,7 +166,8 @@ instance RenderI (TypeDefinition c VALID) where
           )
           [ ( "inputFields",
               renderI (mkInputUnionFields members)
-            )
+            ),
+            ("isOneOf", renderI True)
           ]
       renderContent (DataInterface fields) =
         __type

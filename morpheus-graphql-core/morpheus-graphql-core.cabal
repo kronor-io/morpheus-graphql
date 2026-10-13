@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.1.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 
@@ -29,6 +29,17 @@ data-files:
     test/query/validation/__typename/schema.gql
     test/query/validation/__typename/selection-set/query.gql
     test/query/validation/__typename/success/query.gql
+    test/query/validation/one-of/multiple-fields/query.gql
+    test/query/validation/one-of/no-fields/query.gql
+    test/query/validation/one-of/null-field/query.gql
+    test/query/validation/one-of/nullable-field-variable/query.gql
+    test/query/validation/one-of/schema.gql
+    test/query/validation/one-of/success-literal/query.gql
+    test/query/validation/one-of/success-non-null-field-variable/query.gql
+    test/query/validation/one-of/success-variable/query.gql
+    test/query/validation/one-of/variable-multiple-fields/query.gql
+    test/query/validation/one-of/variable-no-fields/query.gql
+    test/query/validation/one-of/variable-null-field/query.gql
     test/rendering/simple/directive/query.gql
     test/rendering/simple/directive/rendering.gql
     test/rendering/simple/fragment/query.gql
@@ -91,6 +102,9 @@ data-files:
     test/schema/validation/interface/field-args/ok/schema.gql
     test/schema/validation/interface/field-type/fail/schema.gql
     test/schema/validation/interface/field-type/ok/schema.gql
+    test/schema/validation/one-of/invalid-default-value/schema.gql
+    test/schema/validation/one-of/invalid-fields/schema.gql
+    test/schema/validation/one-of/valid/schema.gql
     test/schema/validation/performance-check/schema.gql
     test/schema/validation/schema-definition/fail/non-object-kind/from-schema/schema.gql
     test/schema/validation/schema-definition/fail/non-object-kind/without-schema/schema.gql
@@ -107,6 +121,22 @@ data-files:
     test/query/validation/__typename/arguments/response.json
     test/query/validation/__typename/selection-set/response.json
     test/query/validation/__typename/success/response.json
+    test/query/validation/one-of/multiple-fields/response.json
+    test/query/validation/one-of/no-fields/response.json
+    test/query/validation/one-of/null-field/response.json
+    test/query/validation/one-of/nullable-field-variable/response.json
+    test/query/validation/one-of/nullable-field-variable/variables.json
+    test/query/validation/one-of/success-literal/response.json
+    test/query/validation/one-of/success-non-null-field-variable/response.json
+    test/query/validation/one-of/success-non-null-field-variable/variables.json
+    test/query/validation/one-of/success-variable/response.json
+    test/query/validation/one-of/success-variable/variables.json
+    test/query/validation/one-of/variable-multiple-fields/response.json
+    test/query/validation/one-of/variable-multiple-fields/variables.json
+    test/query/validation/one-of/variable-no-fields/response.json
+    test/query/validation/one-of/variable-no-fields/variables.json
+    test/query/validation/one-of/variable-null-field/response.json
+    test/query/validation/one-of/variable-null-field/variables.json
     test/rendering/variable/enum/variables.json
     test/rendering/variable/include-exclude/variables.json
     test/rendering/variable/input/variables.json
@@ -143,6 +173,9 @@ data-files:
     test/schema/validation/interface/field-args/ok/response.json
     test/schema/validation/interface/field-type/fail/response.json
     test/schema/validation/interface/field-type/ok/response.json
+    test/schema/validation/one-of/invalid-default-value/response.json
+    test/schema/validation/one-of/invalid-fields/response.json
+    test/schema/validation/one-of/valid/response.json
     test/schema/validation/performance-check/response.json
     test/schema/validation/schema-definition/fail/non-object-kind/from-schema/response.json
     test/schema/validation/schema-definition/fail/non-object-kind/without-schema/response.json

@@ -50,6 +50,7 @@ import Data.Morpheus.Types.Internal.AST
     VariableContent (..),
     atPositions,
     isNullable,
+    isOneOfInputObject,
     isSubtype,
     mkMaybeType,
     mkTypeRef,
@@ -158,8 +159,38 @@ validateWrapped (TypeList wrappers _) tyCont singleElem =
   List . pure <$> validateInputByType wrappers tyCont singleElem
 {-- 2. VALIDATE TYPES, all wrappers are already Processed --}
 {-- VALIDATE OBJECT--}
-validateWrapped BaseType {} TypeDefinition {typeContent} entryValue =
+validateWrapped BaseType {} typeDef@TypeDefinition {typeContent} entryValue = do
+  when (isOneOfInputObject typeDef) (validateOneOf (isInputUnion typeContent) entryValue)
   validateUnwrapped typeContent entryValue
+  where
+    -- input unions report missing or multiple fields themselves
+    isInputUnion DataInputUnion {} = True
+    isInputUnion _ = False
+
+-- ONE OF INPUT OBJECT
+-- exactly one field must be provided and its value must not be null.
+-- variables used as the value of that field must be non-nullable.
+validateOneOf :: Bool -> Value s -> InputValidator schemaS ctx ()
+validateOneOf isInputUnion value@(Object fields) = case toList fields of
+  [ObjectEntry {entryName, entryValue}] -> checkOneOfEntry entryName entryValue
+  _
+    | isInputUnion -> pure ()
+    | otherwise -> violation (Just "Exactly one key must be specified for OneOf input object.") value
+  where
+    checkOneOfEntry name Null = violation (Just $ "Value for member field " <> msg name <> " must be non-null.") value
+    checkOneOfEntry name (ResolvedVariable _ Variable {variableName, variableType})
+      | isNullable variableType =
+          violation
+            ( Just
+                $ "Variable "
+                <> msg ("$" <> variableName)
+                <> " must be non-nullable to be used for OneOf input object field "
+                <> msg name
+                <> "."
+            )
+            value
+    checkOneOfEntry _ _ = pure ()
+validateOneOf _ _ = pure ()
 
 validateUnwrapped ::
   (ValidateWithDefault ctx schemaS valueS) =>
