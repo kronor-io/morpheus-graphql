@@ -1,0 +1,11 @@
+{
+  "data": {
+    "card": "PaymentMethodCardInput (CardInput {number = \"4111\"})",
+    "find": "Lookup {byId = Nothing, byName = Just \"Alice\"}",
+    "ids": "PaymentMethodIds [1,2]",
+    "legacy": "PaymentMethodLegacy \"x1\"",
+    "list": "[PaymentMethodSwish \"a\",PaymentMethodIds [3]]",
+    "phoneNumber": "PaymentMethodPhoneNumber (Just \"0701234567\")",
+    "swish": "PaymentMethodSwish \"0701234567\""
+  }
+}

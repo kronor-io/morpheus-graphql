@@ -52,6 +52,7 @@ module Data.Morpheus.Types.Internal.AST.TypeSystem
     typeDefinitions,
     lookupDataType,
     defineDirective,
+    isOneOfInputObject,
   )
 where
 
@@ -101,6 +102,7 @@ import Data.Morpheus.Types.Internal.AST.Fields
     DirectivesDefinition,
     FieldsDefinition,
     addDirectives,
+    hasOneOfDirective,
   )
 import Data.Morpheus.Types.Internal.AST.Name
   ( TypeName,
@@ -619,6 +621,13 @@ mkEnumValue enumName =
       enumDirectives = empty
     }
 
+-- | OneOf Input Objects: input objects annotated with @oneOf,
+-- and input unions (which already accept exactly one field).
+isOneOfInputObject :: TypeDefinition a s -> Bool
+isOneOfInputObject TypeDefinition {typeContent = DataInputObject {}, typeDirectives} = hasOneOfDirective typeDirectives
+isOneOfInputObject TypeDefinition {typeContent = DataInputUnion {}} = True
+isOneOfInputObject _ = False
+
 isLeaf :: TypeContent TRUE a s -> Bool
 isLeaf DataScalar {} = True
 isLeaf DataEnum {} = True
@@ -722,7 +731,7 @@ instance RenderGQL (TypeDefinition a s) where
           <> " = "
           <> renderMembers members
       __render (DataInputObject fields) = "input " <> name <> renderGQL fields
-      __render (DataInputUnion members) = "input " <> name <> renderGQL fields
+      __render (DataInputUnion members) = "input " <> name <> " @oneOf" <> renderGQL fields
         where
           fields = mkInputUnionFields members
       __render DataObject {objectFields} = "type " <> name <> renderGQL objectFields

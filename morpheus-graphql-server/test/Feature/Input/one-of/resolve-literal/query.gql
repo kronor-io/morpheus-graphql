@@ -1,0 +1,9 @@
+query {
+  card: pay(value: { cardInput: { number: "4111" } })
+  swish: pay(value: { swish: "0701234567" })
+  ids: pay(value: { ids: [1, 2] })
+  phoneNumber: pay(value: { phoneNumber: "0701234567" })
+  legacy: pay(value: { legacyID: "x1" })
+  list: payAll(value: [{ swish: "a" }, { ids: 3 }])
+  find(value: { byName: "Alice" })
+}

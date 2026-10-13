@@ -1,0 +1,11 @@
+[
+  {
+    "locations": [
+      {
+        "column": 7,
+        "line": 2
+      }
+    ],
+    "message": "Argument \"pet\" got invalid value. Expected type \"PetInput!\" found {}. Exactly one key must be specified for OneOf input object."
+  }
+]

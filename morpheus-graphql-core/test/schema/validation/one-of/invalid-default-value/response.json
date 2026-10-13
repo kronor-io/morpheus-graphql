@@ -1,0 +1,5 @@
+[
+  {
+    "message": "Field Query.pet(pet:) got invalid default value. Expected type \"PetInput\" found { cat: \"Brontie\", dog: \"Rex\" }. Exactly one key must be specified for OneOf input object."
+  }
+]

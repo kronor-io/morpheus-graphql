@@ -1,0 +1,3 @@
+query ($payment: PaymentMethod!) {
+  pay(value: $payment)
+}

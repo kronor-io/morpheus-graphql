@@ -51,7 +51,8 @@ data Type = Type
     possibleTypes :: Maybe [Type],
     enumValues :: Maybe [EnumValue],
     inputFields :: Maybe [InputValue],
-    ofType :: Maybe Type
+    ofType :: Maybe Type,
+    isOneOf :: Maybe Bool
   }
   deriving (Generic, Show, FromJSON)
 

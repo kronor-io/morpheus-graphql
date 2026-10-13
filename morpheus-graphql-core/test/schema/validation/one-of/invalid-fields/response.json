@@ -1,0 +1,8 @@
+[
+  {
+    "message": "OneOf input field PetInput.cat must be nullable."
+  },
+  {
+    "message": "OneOf input field PetInput.dog must not have a default value."
+  }
+]

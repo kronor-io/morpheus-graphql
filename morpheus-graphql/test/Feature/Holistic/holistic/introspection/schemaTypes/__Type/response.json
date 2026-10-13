@@ -166,6 +166,17 @@
           },
           "isDeprecated": false,
           "deprecationReason": null
+        },
+        {
+          "name": "isOneOf",
+          "args": [],
+          "type": {
+            "kind": "SCALAR",
+            "name": "Boolean",
+            "ofType": null
+          },
+          "isDeprecated": false,
+          "deprecationReason": null
         }
       ],
       "inputFields": null,

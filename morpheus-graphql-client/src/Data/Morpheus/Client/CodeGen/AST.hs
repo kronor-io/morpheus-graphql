@@ -23,8 +23,10 @@ where
 import Data.Aeson (parseJSON)
 import Data.Foldable (foldr1)
 import Data.Morpheus.Client.CodeGen.Internal
-  ( withObject,
+  ( omitNulls,
+    withObject,
     withUnion,
+    (.=),
   )
 import Data.Morpheus.CodeGen.Internal.AST
   ( CodeGenConstructor (..),
@@ -176,6 +178,8 @@ data MValue
   = MFrom TypeName TypeName
   | MTo TypeName TypeName
   | MFunction String Name
+  | -- | constructor of a oneOf input object to an object with a single field
+    MOneOf TypeName FieldName
 
 type ValueMatch = [MValue]
 
@@ -185,6 +189,7 @@ printMatchDoc = matchDoc . map buildMatch
     buildMatch (MFrom a b) = (prettyLit a, "pure" <+> prettyName b)
     buildMatch (MTo a b) = (prettyName a, prettyLit b)
     buildMatch (MFunction v name) = (pretty v, printTHName name <+> pretty v)
+    buildMatch (MOneOf con field) = (prettyName con <+> "v", "omitNulls" <+> "[" <> prettyLit field <+> ".=" <+> "v" <> "]")
 
 printMatchExp :: ValueMatch -> ExpQ
 printMatchExp = matchExp . map buildMatch
@@ -192,6 +197,7 @@ printMatchExp = matchExp . map buildMatch
     buildMatch (MFrom a b) = (toString a, appE (toVar 'pure) (toCon b))
     buildMatch (MTo a b) = (toCon a, toString b)
     buildMatch (MFunction v name) = (toVar v, appE (varE name) v')
+    buildMatch (MOneOf con field) = (conP (toName con) [varP (toName ("v" :: String))], appE (varE 'omitNulls) (listE [uInfixE (toString field) (varE '(.=)) v']))
 
 matchExp :: [(PatQ, ExpQ)] -> ExpQ
 matchExp xs = lamCaseE (map buildMatch xs)

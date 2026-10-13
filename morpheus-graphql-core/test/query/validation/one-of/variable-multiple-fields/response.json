@@ -1,0 +1,11 @@
+[
+  {
+    "locations": [
+      {
+        "column": 8,
+        "line": 1
+      }
+    ],
+    "message": "Variable \"$pet\" got invalid value. Expected type \"PetInput!\" found { dog: { name: \"Rex\" }, id: \"1\" }. Exactly one key must be specified for OneOf input object."
+  }
+]

@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.1.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 
@@ -110,6 +110,13 @@ data-files:
     test/Feature/Input/objects/unexpectedValue/query.gql
     test/Feature/Input/objects/unexpectedVariable/query.gql
     test/Feature/Input/objects/unknownField/query.gql
+    test/Feature/Input/one-of/fail-multiple-fields/query.gql
+    test/Feature/Input/one-of/fail-null-field/query.gql
+    test/Feature/Input/one-of/fail-unknown-field/query.gql
+    test/Feature/Input/one-of/fail-variable/query.gql
+    test/Feature/Input/one-of/introspection/query.gql
+    test/Feature/Input/one-of/resolve-literal/query.gql
+    test/Feature/Input/one-of/resolve-variable/query.gql
     test/Feature/Input/scalars/numbers/decodeFloat/query.gql
     test/Feature/Input/scalars/numbers/decodeInt/query.gql
     test/Feature/Input/scalars/strings/block/query.gql
@@ -247,6 +254,15 @@ data-files:
     test/Feature/Input/objects/unexpectedValue/response.json
     test/Feature/Input/objects/unexpectedVariable/response.json
     test/Feature/Input/objects/unknownField/response.json
+    test/Feature/Input/one-of/fail-multiple-fields/response.json
+    test/Feature/Input/one-of/fail-null-field/response.json
+    test/Feature/Input/one-of/fail-unknown-field/response.json
+    test/Feature/Input/one-of/fail-variable/response.json
+    test/Feature/Input/one-of/fail-variable/variables.json
+    test/Feature/Input/one-of/introspection/response.json
+    test/Feature/Input/one-of/resolve-literal/response.json
+    test/Feature/Input/one-of/resolve-variable/response.json
+    test/Feature/Input/one-of/resolve-variable/variables.json
     test/Feature/Input/scalars/numbers/decodeFloat/response.json
     test/Feature/Input/scalars/numbers/decodeInt/response.json
     test/Feature/Input/scalars/strings/block/response.json
@@ -396,6 +412,7 @@ test-suite morpheus-graphql-server-test
       Feature.Input.Collections
       Feature.Input.Enums
       Feature.Input.Objects
+      Feature.Input.OneOf
       Feature.Input.Scalars
       Feature.Input.Variables
       Feature.NamedResolvers.API

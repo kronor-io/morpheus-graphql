@@ -1,0 +1,115 @@
+{
+  "data": {
+    "__schema": {
+      "queryType": {
+        "name": "Query"
+      },
+      "mutationType": null,
+      "subscriptionType": null,
+      "types": [
+        {
+          "kind": "SCALAR",
+          "name": "String"
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Int"
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Boolean"
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "CardInput",
+          "isOneOf": false,
+          "inputFields": [
+            {
+              "name": "number",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "PaymentMethod",
+          "isOneOf": true,
+          "inputFields": [
+            {
+              "name": "card",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "CardInput",
+                "ofType": null
+              }
+            },
+            {
+              "name": "swish",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            {
+              "name": "ids",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Query",
+          "fields": [
+            {
+              "name": "pay",
+              "args": [
+                {
+                  "name": "method",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "PaymentMethod",
+                      "ofType": null
+                    }
+                  }
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
