@@ -32,6 +32,7 @@ import Data.Morpheus.Types.Internal.AST
     DataEnumValue (..),
     DirectiveDefinition (..),
     DirectiveLocation (..),
+    Directives,
     FieldContent (..),
     FieldDefinition (..),
     FieldName,
@@ -43,11 +44,15 @@ import Data.Morpheus.Types.Internal.AST
     TypeCategory,
     TypeContent (..),
     TypeDefinition (..),
+    TypeName,
     TypeRef (..),
     Typed (..),
     UnionMember (..),
     VALID,
     Value,
+    hasOneOfDirective,
+    isNullable,
+    unpackName,
   )
 import Data.Morpheus.Types.Internal.AST.Error (GQLError)
 import Data.Morpheus.Types.Internal.AST.Name (Name, isValidName)
@@ -128,7 +133,27 @@ instance TypeCheck (TypeDefinition cat) where
           typeDescription
         <$> checkName typeName
         <*> validateDirectives (typeDirectiveLocation typeContent) typeDirectives
-        <*> typeCheck typeContent
+        <*> (validateOneOfFields typeName typeDirectives typeContent *> typeCheck typeContent)
+
+-- fields of OneOf Input Objects must be nullable and must not have default values.
+validateOneOfFields :: TypeName -> Directives CONST -> TypeContent TRUE cat CONST -> SchemaValidator (TypeEntity ON_TYPE) ()
+validateOneOfFields typeName dirs DataInputObject {inputObjectFields}
+  | hasOneOfDirective dirs = traverse_ checkField inputObjectFields
+  where
+    checkField FieldDefinition {fieldName, fieldType, fieldContent}
+      | not (isNullable fieldType) = failure "must be nullable"
+      | isJust fieldContent = failure "must not have a default value"
+      | otherwise = pure ()
+      where
+        failure reason =
+          inField fieldName
+            $ throwError
+            $ "OneOf input field "
+            <> msg (unpackName typeName <> "." <> unpackName fieldName :: Text)
+            <> " "
+            <> reason
+            <> "."
+validateOneOfFields _ _ _ = pure ()
 
 checkName :: (MonadError GQLError f) => Name t -> f (Name t)
 checkName name
@@ -140,7 +165,7 @@ typeDirectiveLocation DataObject {} = LOCATION_OBJECT
 typeDirectiveLocation DataInputObject {} = LOCATION_INPUT_OBJECT
 typeDirectiveLocation DataScalar {} = LOCATION_SCALAR
 typeDirectiveLocation DataEnum {} = LOCATION_ENUM
-typeDirectiveLocation DataInputUnion {} = LOCATION_OBJECT
+typeDirectiveLocation DataInputUnion {} = LOCATION_INPUT_OBJECT
 typeDirectiveLocation DataUnion {} = LOCATION_UNION
 typeDirectiveLocation DataInterface {} = LOCATION_INTERFACE
 

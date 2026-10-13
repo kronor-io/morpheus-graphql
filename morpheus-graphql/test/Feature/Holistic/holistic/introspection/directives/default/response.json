@@ -62,6 +62,12 @@
           "name": "include"
         },
         {
+          "args": [],
+          "description": "\nIndicates exactly one field must be supplied and this field must not be `null`.\n",
+          "locations": ["INPUT_OBJECT"],
+          "name": "oneOf"
+        },
+        {
           "args": [
             {
               "defaultValue": null,

@@ -1,0 +1,11 @@
+[
+  {
+    "locations": [
+      {
+        "column": 8,
+        "line": 2
+      }
+    ],
+    "message": "Argument \"pets\" got invalid value. Expected type \"PetInput!\" found { dog: $dog }. Variable \"$dog\" must be non-nullable to be used for OneOf input object field \"dog\"."
+  }
+]

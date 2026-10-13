@@ -1,0 +1,3 @@
+query ($dog: DogInput) {
+  pets(pets: [{ dog: $dog }])
+}

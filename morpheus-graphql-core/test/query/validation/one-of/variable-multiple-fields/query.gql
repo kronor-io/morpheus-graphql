@@ -1,0 +1,3 @@
+query ($pet: PetInput!) {
+  pet(pet: $pet)
+}

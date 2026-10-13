@@ -1,0 +1,9 @@
+input PetInput @oneOf {
+  cat: String!
+  dog: String = "Rex"
+  id: ID
+}
+
+type Query {
+  pet(pet: PetInput): String
+}
