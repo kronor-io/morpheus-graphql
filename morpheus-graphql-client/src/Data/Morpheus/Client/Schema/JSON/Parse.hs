@@ -27,6 +27,7 @@ import Data.Morpheus.Client.Schema.JSON.Types
   )
 import Data.Morpheus.Core
   ( defaultConfig,
+    internalSchema,
     validateSchema,
   )
 import Data.Morpheus.Internal.Ext
@@ -35,16 +36,20 @@ import Data.Morpheus.Internal.Ext
 import Data.Morpheus.Internal.Utils
   ( empty,
     fromElems,
+    lookup,
+    singleton,
   )
 import Data.Morpheus.Types.Internal.AST
   ( ANY,
     ArgumentDefinition (..),
     CONST,
+    Directive (..),
     FieldDefinition,
     GQLError,
     IN,
     OUT,
     OperationType (..),
+    Position (..),
     RootOperationTypeDefinition (..),
     SchemaDefinition (..),
     TypeContent (..),
@@ -61,10 +66,11 @@ import Data.Morpheus.Types.Internal.AST
     mkType,
     mkUnionContent,
     msg,
+    oneOfDirectiveName,
     toAny,
   )
 import qualified Data.Morpheus.Types.Internal.AST as AST
-  ( Schema,
+  ( Schema (..),
   )
 import Relude hiding
   ( ByteString,
@@ -92,9 +98,11 @@ decodeIntrospection jsonDoc = case jsonSchema of
       } -> do
       schemaDef <- mkSchemaDef schema
       gqlTypes <- concat <$> traverse parse types
-      buildSchema (Just schemaDef, gqlTypes, empty) >>= validate
+      buildSchema (Just schemaDef, gqlTypes, builtInDirectives) >>= validate
   Right res -> decoderError (msg $ show res)
   where
+    -- introspection does not list the definitions of the directives that types reference
+    builtInDirectives = maybe empty (singleton oneOfDirectiveName) (lookup oneOfDirectiveName (AST.directiveDefinitions internalSchema))
     validate :: AST.Schema CONST -> GQLResult (AST.Schema VALID)
     validate = validateSchema False defaultConfig
     jsonSchema :: Either String (JSONResponse Introspection)
@@ -131,11 +139,16 @@ instance ParseJSONSchema Type [TypeDefinition ANY CONST] where
     case traverse name unions of
       Nothing -> decoderError "ERROR: GQL ERROR"
       Just uni -> pure [toAny $ mkType typeName $ mkUnionContent uni]
-  parse Type {name = Just typeName, kind = INPUT_OBJECT, inputFields = Just iFields} =
+  parse Type {name = Just typeName, kind = INPUT_OBJECT, inputFields = Just iFields, isOneOf} =
     do
       (fields :: [FieldDefinition IN CONST]) <- traverse parse iFields
       fs <- fromElems fields
-      pure [mkType typeName $ DataInputObject fs]
+      pure [withOneOf (mkType typeName $ DataInputObject fs)]
+    where
+      withOneOf t
+        | isOneOf == Just True = t {typeDirectives = singleton oneOfDirectiveName oneOfDirective}
+        | otherwise = t
+      oneOfDirective = Directive {directivePosition = Position 0 0, directiveName = oneOfDirectiveName, directiveArgs = empty}
   parse Type {name = Just typeName, kind = OBJECT, fields = Just oFields} =
     do
       (fields :: [FieldDefinition OUT CONST]) <- traverse parse oFields

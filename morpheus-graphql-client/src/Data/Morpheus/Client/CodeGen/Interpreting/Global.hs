@@ -42,7 +42,9 @@ import Data.Morpheus.Types.Internal.AST
     TypeKind (..),
     TypeName,
     TypeRef (..),
+    TypeWrapper (..),
     VALID,
+    hasOneOfDirective,
     isNotSystemTypeName,
     isNullable,
     isResolverType,
@@ -64,16 +66,22 @@ toGlobalDefinitionsWith :: (TypeDefinition ANY VALID -> Bool) -> Schema VALID ->
 toGlobalDefinitionsWith f Schema{types} = do
   let tyDefs = mapMaybe generateGlobalType $ filter shouldInclude (sortWith typeName $ toList types)
   decs <- traverse mapPreDeclarations $ concatMap toClientDeclarations tyDefs
-  let hasEnums = not $ null [x | x@ClientTypeDefinition {clientKind = KIND_ENUM} <- tyDefs]
-  pure (decs, [FlagLanguageExtension "LambdaCase" | hasEnums])
+  -- enums and oneOf input objects are encoded with \case
+  let hasMatches = not $ null [x | x@ClientTypeDefinition {clientKind} <- tyDefs, clientKind == KIND_ENUM || isOneOf x]
+  pure (decs, [FlagLanguageExtension "LambdaCase" | hasMatches])
   where
     shouldInclude t =
         not (isResolverType t)
             && isNotSystemTypeName (typeName t)
             && f t
 
+isOneOf :: ClientTypeDefinition -> Bool
+isOneOf ClientTypeDefinition {clientKind = KIND_INPUT_OBJECT, clientCons = _ : _ : _} = True
+isOneOf ClientTypeDefinition {clientKind = KIND_INPUT_OBJECT, clientCons = [CodeGenConstructor {constructorFields = [CodeGenField {fieldName = "_"}]}]} = True
+isOneOf _ = False
+
 generateGlobalType :: TypeDefinition ANY VALID -> Maybe ClientTypeDefinition
-generateGlobalType TypeDefinition {typeName, typeContent} = do
+generateGlobalType TypeDefinition {typeName, typeContent, typeDirectives} = do
   (clientKind, clientCons) <- genContent typeContent
   pure
     ClientTypeDefinition
@@ -83,6 +91,9 @@ generateGlobalType TypeDefinition {typeName, typeContent} = do
       }
   where
     genContent :: TypeContent TRUE ANY VALID -> Maybe (TypeKind, [CodeGenConstructor])
+    genContent (DataInputObject inputFields)
+      | hasOneOfDirective typeDirectives =
+          pure (KIND_INPUT_OBJECT, mkOneOfCons typeName <$> toList inputFields)
     genContent (DataInputObject inputFields) =
       pure
         ( KIND_INPUT_OBJECT,
@@ -104,6 +115,25 @@ toCodeGenField FieldDefinition {fieldType = field@TypeRef {..}, ..} =
       wrappers = [GQL_WRAPPER typeWrappers],
       fieldIsNullable = isNullable field
     }
+
+-- | each field of a oneOf input object is a constructor with a single non-nullable value.
+-- e.g. @card: CardInput@ of @PaymentMethod@ becomes @PaymentMethodCard CardInput@.
+mkOneOfCons :: TypeName -> FieldDefinition a b -> CodeGenConstructor
+mkOneOfCons typename FieldDefinition {fieldName, fieldType = TypeRef {typeConName, typeWrappers}} =
+  CodeGenConstructor
+    { constructorName = CodeGenTypeName [coerce typename] [] (coerce fieldName),
+      constructorFields =
+        [ CodeGenField
+            { fieldName = "_",
+              fieldType = typeConName,
+              wrappers = [GQL_WRAPPER (toRequired typeWrappers)],
+              fieldIsNullable = False
+            }
+        ]
+    }
+  where
+    toRequired (BaseType _) = BaseType True
+    toRequired (TypeList elems _) = TypeList elems True
 
 mkConsEnum :: TypeName -> DataEnumValue s -> CodeGenConstructor
 mkConsEnum typename DataEnumValue {enumName} =

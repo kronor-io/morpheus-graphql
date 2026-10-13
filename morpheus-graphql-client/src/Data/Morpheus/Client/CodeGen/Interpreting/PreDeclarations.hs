@@ -121,6 +121,17 @@ deriveToJSONMethod _ CodeGenType {cgConstructors = [CodeGenConstructor {..}]} =
         '(.=),
         toName $ camelCaseFieldName (getFullName constructorName) fieldName
       )
+-- oneOf input objects: each constructor has a single value
+deriveToJSONMethod _ CodeGenType {cgConstructors}
+  | all isOneOfConstructor cgConstructors =
+      pure
+        ( NoArgument,
+          MatchMethod $ map toJSONOneOf cgConstructors
+        )
+  where
+    isOneOfConstructor CodeGenConstructor {constructorFields = [CodeGenField {fieldName = "_"}]} = True
+    isOneOfConstructor _ = False
+    toJSONOneOf CodeGenConstructor {constructorName} = MOneOf (getFullName constructorName) (coerce (typename constructorName))
 deriveToJSONMethod _ _ = fail "Input Unions are not yet supported"
 
 toJSONEnum :: CodeGenTypeName -> MValue
