@@ -23,6 +23,13 @@ input Coordinates @TestDirective(name: "SomeName") {
   longitude: Int! = 4 @TestDirective(name: "SomeName")
 }
 
+input PaymentMethod @oneOf {
+  coordinates: Coordinates
+  swish: String @deprecated(reason: "use coordinates")
+  ids: [Int!]
+  URL: String
+}
+
 type Address {
   street: [[[[String!]!]!]]
   score: Float! @TestDirective(name: "SomeName")
@@ -41,6 +48,7 @@ union TestUnion @TestDirective(name: "SomeName") = User | Address
 type MyQuery {
   user: User!
   testUnion: TestUnion
+  pay(method: PaymentMethod!): String
 }
 
 type MyMutation {

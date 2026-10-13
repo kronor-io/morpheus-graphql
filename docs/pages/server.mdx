@@ -419,6 +419,41 @@ instance GQLType City where
       <> enumDirective "Delphi" Deprecated {reason = Just "oracle left the place"}
 ```
 
+#### OneOf Input Objects
+
+The `OneOf` type directive derives a [OneOf Input Object](https://spec.graphql.org/September2025/#sec-OneOf-Input-Objects)
+(`@oneOf`): exactly one field must be provided, and it must not be `null`.
+
+On a sum type, every constructor must have exactly one field and becomes a field of the input object,
+named after the constructor without the type name (starting with a lowercase letter):
+
+```hs
+data PaymentMethod
+  = PaymentMethodCard CardInput
+  | PaymentMethodSwish Text
+  | PaymentMethodLegacy Text
+  deriving
+    (Generic)
+
+instance GQLType PaymentMethod where
+  directives _ =
+    typeDirective OneOf
+      <> fieldDirective "legacy" Rename {newName = "legacyID"}
+```
+
+```graphql
+input PaymentMethod @oneOf {
+  card: CardInput
+  swish: String
+  legacyID: String
+}
+```
+
+On a record type, the fields must be nullable (`Maybe`) and exactly one of them will be `Just`.
+
+Code generation maps `input ... @oneOf` to such sum types, both for servers and clients.
+Input unions (sum types without `OneOf`) are also exposed as `@oneOf`.
+
 ### Custom Directive Definition
 
 Moprheus GraphQL provides an API for defining custom GQL directives.

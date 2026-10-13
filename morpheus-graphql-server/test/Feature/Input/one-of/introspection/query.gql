@@ -1,0 +1,27 @@
+query {
+  paymentMethod: __type(name: "PaymentMethod") {
+    kind
+    isOneOf
+    inputFields {
+      name
+      defaultValue
+      type {
+        kind
+        name
+        ofType {
+          kind
+          name
+        }
+      }
+    }
+  }
+  lookup: __type(name: "Lookup") {
+    isOneOf
+  }
+  cardInput: __type(name: "CardInput") {
+    isOneOf
+  }
+  query: __type(name: "Query") {
+    isOneOf
+  }
+}

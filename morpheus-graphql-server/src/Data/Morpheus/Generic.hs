@@ -10,6 +10,8 @@ module Data.Morpheus.Generic
     GRepValue (..),
     deriveType,
     deriveValue,
+    deriveConstructors,
+    deriveDatatypeName,
     -- fields
     DecoderFun (..),
     DecodeFields,
@@ -41,12 +43,13 @@ import Data.Morpheus.Generic.Fields
     decodeFields,
   )
 import Data.Morpheus.Generic.GRep
-  ( GRep,
+  ( GRep (deriveDatatypeName),
     GRepCons (..),
     GRepField (..),
     GRepFun (..),
     GRepType (..),
     GRepValue (..),
+    deriveConstructors,
     deriveType,
     deriveValue,
   )

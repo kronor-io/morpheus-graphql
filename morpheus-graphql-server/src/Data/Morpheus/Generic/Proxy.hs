@@ -12,6 +12,7 @@
 
 module Data.Morpheus.Generic.Proxy
   ( conNameP,
+    datatypeNameP,
     isRecordP,
     selNameP,
     symbolName,
@@ -27,6 +28,8 @@ import Data.List (init, last)
 import GHC.Generics
   ( C,
     Constructor,
+    D,
+    Datatype (..),
     Generic (..),
     M1 (..),
     Meta,
@@ -39,6 +42,9 @@ import GHC.Generics
 import GHC.TypeLits
 import Relude hiding (init, last, undefined)
 import Prelude (undefined)
+
+datatypeNameP :: forall f t (d :: Meta). (Datatype d, IsString t) => f d -> t
+datatypeNameP _ = fromString $ datatypeName (undefined :: M1 D d U1 a)
 
 conNameP :: forall f t (c :: Meta). (Constructor c, IsString t) => f c -> t
 conNameP _ = fromString $ conName (undefined :: M1 C c U1 a)

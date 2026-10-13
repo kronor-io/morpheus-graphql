@@ -13,6 +13,7 @@ module Data.Morpheus.Server.Types.DirectiveDefinitions
     Suffixes (..),
     Deprecated (..),
     Describe (..),
+    OneOf (..),
     Rename (..),
     DropNamespace (..),
     DefaultValue (..),
@@ -84,6 +85,35 @@ instance GQLDirective Deprecated where
       '[ 'LOCATION_FIELD_DEFINITION,
          'LOCATION_ENUM_VALUE
        ]
+
+-- | native GraphQL directive @oneOf.
+--
+-- on a sum type, each constructor (with exactly one field) becomes a field of the input object,
+-- named after the constructor without the type name:
+--
+-- > data PaymentMethod = PaymentMethodCard CardInput | PaymentMethodSwish Text
+-- >   deriving (Generic)
+-- >
+-- > instance GQLType PaymentMethod where
+-- >   directives _ = typeDirective OneOf
+--
+-- is the input object @input PaymentMethod \@oneOf { card: CardInput, swish: String }@.
+--
+-- on a record type, all fields must be nullable.
+data OneOf = OneOf
+  deriving (Generic)
+
+instance GQLType OneOf where
+  type KIND OneOf = DIRECTIVE
+  __type = mkTypeData "oneOf"
+
+instance GQLDirective OneOf where
+  type DIRECTIVE_LOCATIONS OneOf = '[ 'LOCATION_INPUT_OBJECT]
+
+  -- rendered as the native @oneOf directive during derivation
+  excludeFromSchema _ = True
+
+instance VisitType OneOf
 
 newtype Describe = Describe {text :: Text}
   deriving

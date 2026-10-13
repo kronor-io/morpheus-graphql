@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "locations": [
+        {
+          "column": 8,
+          "line": 2
+        }
+      ],
+      "message": "Argument \"value\" got invalid value. Expected type \"Lookup!\" found { byId: null }. Value for member field \"byId\" must be non-null."
+    }
+  ]
+}

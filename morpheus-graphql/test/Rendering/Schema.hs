@@ -23,9 +23,11 @@ import Data.Morpheus.Document
 import Data.Morpheus.Types
   ( DecodeScalar (..),
     DefaultValue (..),
+    Deprecated (..),
     DropNamespace (..),
     EncodeScalar (..),
     ID,
+    OneOf (..),
     Rename (..),
     RootResolver,
     ScalarValue (..),

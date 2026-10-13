@@ -28,15 +28,20 @@ module Data.Morpheus.Server.Deriving.Internal.Directive
     UseDeriving (..),
     deriveDirectiveDefinition,
     serializeDirectives,
+    isOneOfType,
+    oneOfBaseFieldName,
+    oneOfFieldName,
+    withOneOfDirective,
   )
 where
 
 import Control.Monad.Except
+import Data.Char (toLower)
 import Data.Morpheus.Generic
   ( GRepField (..),
   )
-import Data.Morpheus.Internal.Ext (GQLResult, unsafeFromList)
-import Data.Morpheus.Internal.Utils (Empty (..), fromElems, lookup)
+import Data.Morpheus.Internal.Ext (GQLResult)
+import Data.Morpheus.Internal.Utils (Empty (..), IsMap (..), fromElems, lookup)
 import Data.Morpheus.Server.Deriving.Utils.Kinded
   ( CatType (..),
     inputType,
@@ -80,7 +85,11 @@ import Data.Morpheus.Types.Internal.AST
     TypeDefinition,
     TypeName,
     Value (..),
+    oneOfDirectiveName,
+    packName,
+    unpackName,
   )
+import qualified Data.Text as T
 import GHC.Generics ()
 import GHC.TypeLits ()
 import Relude hiding (empty)
@@ -119,6 +128,46 @@ serializeDirective ctx (GDirectiveUsage x) = do
     )
   where
     directiveName = deriveDirectiveName ctx (Identity x)
+
+-- ONE OF
+
+-- | input types with the @oneOf directive
+isOneOfType :: (gql a) => UseDeriving gql args -> CatType kind a -> Bool
+isOneOfType ctx proxy@InputType = any isOneOf (getTypeDirectives ctx proxy)
+  where
+    isOneOf (GDirectiveUsage x) = deriveDirectiveName ctx (Identity x) == oneOfDirectiveName
+isOneOfType _ OutputType = False
+
+-- | add the native @oneOf directive (its server counterpart is excluded from the schema)
+withOneOfDirective :: (gql a) => UseDeriving gql args -> CatType kind a -> Directives CONST -> Directives CONST
+withOneOfDirective ctx proxy dirs
+  | isOneOfType ctx proxy = unsafeFromList ((oneOfDirectiveName, oneOfDirective) : toAssoc dirs)
+  | otherwise = dirs
+  where
+    oneOfDirective =
+      Directive
+        { directivePosition = Position 0 0,
+          directiveName = oneOfDirectiveName,
+          directiveArgs = empty
+        }
+
+-- | field name of a constructor of a oneOf sum type:
+-- the constructor name without the datatype name, starting with a lowercase letter.
+-- e.g. @PaymentMethodCard@ of @PaymentMethod@ becomes @card@.
+-- field directives (e.g. Rename) are looked up by this name.
+oneOfFieldName :: (gql a) => UseDeriving gql args -> f a -> TypeName -> TypeName -> FieldName
+oneOfFieldName ctx proxy datatypeName consName = foldr applyFieldName name (getFieldDirectives ctx proxy name)
+  where
+    name = oneOfBaseFieldName datatypeName consName
+
+oneOfBaseFieldName :: TypeName -> TypeName -> FieldName
+oneOfBaseFieldName datatypeName consName = name
+  where
+    name = packName $ uncapitalize $ withoutPrefix (unpackName datatypeName) (unpackName consName)
+    withoutPrefix prefix value = case T.stripPrefix prefix value of
+      Just rest | not (T.null rest) -> rest
+      _ -> value
+    uncapitalize t = maybe t (\(x, xs) -> T.cons (toLower x) xs) (T.uncons t)
 
 -- GET
 getEnumDirectives :: (gql a) => UseDeriving gql args -> f a -> TypeName -> [GDirectiveUsage gql args]

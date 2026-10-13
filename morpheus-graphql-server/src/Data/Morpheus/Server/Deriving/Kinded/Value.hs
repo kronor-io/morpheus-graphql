@@ -27,16 +27,19 @@ import Data.Morpheus.Generic
     GRepField (..),
     GRepFun (..),
     GRepValue (..),
+    deriveDatatypeName,
     deriveValue,
     symbolName,
   )
 import Data.Morpheus.Internal.Ext (GQLResult, unsafeFromList)
 import Data.Morpheus.Internal.Utils
-  ( IsMap (toAssoc),
+  ( IsMap (singleton, toAssoc),
     fromElems,
   )
 import Data.Morpheus.Server.Deriving.Internal.Directive
-  ( visitEnumName,
+  ( isOneOfType,
+    oneOfFieldName,
+    visitEnumName,
     visitFieldName,
   )
 import Data.Morpheus.Server.Deriving.Internal.Value
@@ -79,8 +82,10 @@ import Data.Morpheus.Types.GQLWrapper
   )
 import Data.Morpheus.Types.Internal.AST
   ( CONST,
+    FieldName,
     IN,
     ObjectEntry (..),
+    TypeName,
     VALID,
     ValidValue,
     Value (..),
@@ -105,17 +110,19 @@ instance (ctx ~ UseDeriving gql args, DecodeWrapperConstraint f a, DecodeWrapper
       >>= handleEither
 
 instance (ctx ~ UseDeriving gql args, gql a, Generic a, DecodeRep ctx (Rep a), GRep gql args (GQLResult (Value CONST)) (Rep a)) => KindedValue ctx TYPE a where
-  encodeKindedValue ctx =
-    repToValue
-      . deriveValue
-        ( GRepFun
-            { grepFun = useEncodeValue ctx . runIdentity,
-              grepTypename = useTypename ctx . inputType,
-              grepWrappers = useWrappers ctx . inputType
-            } ::
-            GRepFun gql args Identity (GQLResult (Value CONST))
-        )
-      . unkind
+  encodeKindedValue ctx = encodeRep . deriveValue fun . unkind
+    where
+      fun =
+        GRepFun
+          { grepFun = useEncodeValue ctx . runIdentity,
+            grepTypename = useTypename ctx . inputType,
+            grepWrappers = useWrappers ctx . inputType
+          } ::
+          GRepFun gql args Identity (GQLResult (Value CONST))
+      proxy = InputType :: CatType IN a
+      encodeRep
+        | isOneOfType ctx proxy = oneOfToValue (useTypename ctx proxy) (oneOfFieldName ctx proxy (deriveDatatypeName fun (Proxy @(Rep a))))
+        | otherwise = repToValue
   decodeKindedValue ctx _ = fmap to . (`runReaderT` context) . decodeRep ctx
     where
       context =
@@ -123,7 +130,9 @@ instance (ctx ~ UseDeriving gql args, gql a, Generic a, DecodeRep ctx (Rep a), G
           { isVariantRef = False,
             typeName = useTypename ctx (InputType :: CatType IN a),
             enumVisitor = visitEnumName ctx proxy,
-            fieldVisitor = visitFieldName ctx proxy
+            fieldVisitor = visitFieldName ctx proxy,
+            oneOfVisitor = if isOneOfType ctx (InputType :: CatType IN a) then Just (oneOfFieldName ctx proxy) else Nothing,
+            consDatatypeName = ""
           }
         where
           proxy = Proxy @a
@@ -147,7 +156,9 @@ instance (ctx ~ UseDeriving gql args, gql a, Generic a, DecodeRep ctx (Rep a), G
           { isVariantRef = False,
             typeName = useTypename ctx (InputType :: CatType IN a),
             enumVisitor = visitEnumName ctx proxy,
-            fieldVisitor = visitFieldName ctx proxy
+            fieldVisitor = visitFieldName ctx proxy,
+            oneOfVisitor = Nothing,
+            consDatatypeName = ""
           }
         where
           proxy = Proxy @a
@@ -187,3 +198,18 @@ repToValue GRepValueObject {..} = Object <$> (traverse fromField objectFields >>
       entryValue <- fieldValue
       pure ObjectEntry {entryName = fieldSelector, entryValue}
 repToValue _ = throwError (internal "input unions are not supported")
+
+-- | constructors of oneOf sum types are encoded as an object with a single field
+oneOfToValue :: TypeName -> (TypeName -> FieldName) -> GRepValue (GQLResult (Value CONST)) -> GQLResult (Value CONST)
+oneOfToValue typename toFieldName GRepValueUnionRef {unionRefTypeName, unionRefValue} =
+  -- constructors named typename <> member typename are recognized as union references
+  oneOfField toFieldName (typename <> unionRefTypeName) unionRefValue
+oneOfToValue _ toFieldName GRepValueUnion {unionVariantName, unionFields = [GRepField {fieldValue}]} =
+  oneOfField toFieldName unionVariantName fieldValue
+oneOfToValue _ _ value = repToValue value
+
+oneOfField :: (TypeName -> FieldName) -> TypeName -> GQLResult (Value CONST) -> GQLResult (Value CONST)
+oneOfField toFieldName consName value = do
+  entryValue <- value
+  let entryName = toFieldName consName
+  pure $ Object $ singleton entryName ObjectEntry {entryName, entryValue}
