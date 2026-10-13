@@ -1,0 +1,3 @@
+query {
+  pay(value: { swish: "a", legacyID: "b" })
+}

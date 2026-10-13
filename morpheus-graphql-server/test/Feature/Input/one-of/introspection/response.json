@@ -1,0 +1,67 @@
+{
+  "data": {
+    "cardInput": {
+      "isOneOf": false
+    },
+    "lookup": {
+      "isOneOf": true
+    },
+    "paymentMethod": {
+      "inputFields": [
+        {
+          "defaultValue": null,
+          "name": "cardInput",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "CardInput",
+            "ofType": null
+          }
+        },
+        {
+          "defaultValue": null,
+          "name": "swish",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "defaultValue": null,
+          "name": "ids",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null
+            }
+          }
+        },
+        {
+          "defaultValue": null,
+          "name": "phoneNumber",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "defaultValue": null,
+          "name": "legacyID",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        }
+      ],
+      "isOneOf": true,
+      "kind": "INPUT_OBJECT"
+    },
+    "query": {
+      "isOneOf": null
+    }
+  }
+}

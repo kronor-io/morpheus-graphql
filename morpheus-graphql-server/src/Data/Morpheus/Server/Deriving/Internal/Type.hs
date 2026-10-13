@@ -29,6 +29,7 @@ import Data.Morpheus.Generic
     GRepField (..),
     GRepFun (..),
     GRepType (..),
+    deriveConstructors,
     deriveType,
   )
 import Data.Morpheus.Internal.Ext (GQLResult)
@@ -38,6 +39,9 @@ import Data.Morpheus.Server.Deriving.Internal.Directive
     getEnumDirectives,
     getFieldDirectives,
     getTypeDirectives,
+    isOneOfType,
+    oneOfBaseFieldName,
+    oneOfFieldName,
     serializeDirectives,
     visitEnumName,
     visitEnumValueDescription,
@@ -45,6 +49,7 @@ import Data.Morpheus.Server.Deriving.Internal.Directive
     visitFieldDescription,
     visitFieldName,
     visitTypeDescription,
+    withOneOfDirective,
   )
 import Data.Morpheus.Server.Deriving.Utils.Kinded
   ( mapCat,
@@ -79,7 +84,9 @@ import Data.Morpheus.Types.Internal.AST
     mkNullaryMember,
     mkTypeRef,
     mkUnionMember,
+    msg,
     toAny,
+    toNullable,
     unitFieldName,
     unitTypeName,
   )
@@ -165,7 +172,36 @@ toTypeContent _ prx GRepTypeUnion {..} = toUnion prx (map fst variantRefs) inlin
 type TypeProxy gql args kind a = (UseDeriving gql args, CatType kind a)
 
 deriveTypeContent :: (DERIVE_TYPE gql a) => TypeProxy gql args kind a -> GQLResult (TypeContent TRUE kind CONST, [GQLTypeNodeExtension])
-deriveTypeContent (cxt, prx) = deriveType (fieldGRep prx cxt) prx >>= toTypeContent cxt prx
+deriveTypeContent (cxt, prx)
+  | isOneOfType cxt prx = deriveConstructors (fieldGRep prx cxt) prx >>= deriveOneOf
+  | otherwise = deriveDefault
+  where
+    deriveDefault = deriveType (fieldGRep prx cxt) prx >>= toTypeContent cxt prx
+    -- a single constructor is a record of nullable fields,
+    -- otherwise each constructor is a field.
+    deriveOneOf (datatypeName, cons@(_ : _ : _)) = (,[]) . mkObject prx <$> traverse (toOneOfField cxt prx datatypeName) cons
+    deriveOneOf _ = deriveDefault
+
+toOneOfField :: (gql a) => UseDeriving gql args -> CatType kind a -> TypeName -> GRepCons (ArgumentsDefinition CONST) -> GQLResult (FieldDefinition kind CONST)
+toOneOfField ctx proxy datatypeName GRepCons {consName, consFields = [GRepField {fieldTypeRef}]} = do
+  fieldDirectives <- serializeDirectives ctx (getFieldDirectives ctx proxy baseName)
+  pure
+    FieldDefinition
+      { fieldName = oneOfFieldName ctx proxy datatypeName consName,
+        fieldDescription = visitFieldDescription ctx proxy baseName Nothing,
+        fieldType = toNullable fieldTypeRef,
+        fieldContent = Nothing,
+        fieldDirectives
+      }
+  where
+    baseName = oneOfBaseFieldName datatypeName consName
+toOneOfField _ _ datatypeName GRepCons {consName} =
+  throwError $
+    "constructor "
+      <> msg consName
+      <> " of oneOf type "
+      <> msg datatypeName
+      <> " must have exactly one field."
 
 deriveTypeGuardUnions :: (DERIVE_TYPE gql a) => TypeProxy gql args OUT a -> GQLResult [TypeName]
 deriveTypeGuardUnions prx = deriveTypeContent prx >>= getUnionNames prx . fst
@@ -214,7 +250,7 @@ toTypeDefinition ctx proxy content = do
     TypeDefinition
       (visitTypeDescription ctx proxy Nothing)
       (useTypename ctx proxy)
-      dirs
+      (withOneOfDirective ctx proxy dirs)
       content
 
 fieldGRep :: (UseGQLType ctx gql) => CatType cat a -> ctx -> GRepFun gql gql Proxy (GQLResult (ArgumentsDefinition CONST))

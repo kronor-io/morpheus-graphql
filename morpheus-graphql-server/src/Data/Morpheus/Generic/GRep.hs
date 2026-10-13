@@ -10,6 +10,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -23,12 +24,14 @@ module Data.Morpheus.Generic.GRep
     GRepType (..),
     deriveValue,
     deriveType,
+    deriveConstructors,
   )
 where
 
 import Data.List (partition)
 import Data.Morpheus.Generic.Proxy
   ( conNameP,
+    datatypeNameP,
     isRecordP,
     selNameP,
   )
@@ -101,14 +104,26 @@ deriveType ctx x = toType <$> unpackMonad (deriveTypeDefinition ctx (toRep x))
         (unionRefRep, unionCons) = partition (isUnionRef typename) cons
         typename = grepTypename ctx x
 
+-- | the Haskell datatype name and its constructors (in declaration order)
+deriveConstructors ::
+  forall kind gql c v kinded m a.
+  (GRep gql c (m v) (Rep a), Monad m) =>
+  GRepFun gql c Proxy (m v) ->
+  kinded kind a ->
+  m (TypeName, [GRepCons v])
+deriveConstructors ctx x = (deriveDatatypeName ctx (toRep x),) <$> unpackMonad (deriveTypeDefinition ctx (toRep x))
+
 --  GENERIC UNION
 class GRep (gql :: Type -> Constraint) (c :: Type -> Constraint) (v :: Type) f where
   deriveTypeValue :: GRepFun gql c Identity v -> f a -> (Bool, GRepCons v)
   deriveTypeDefinition :: GRepFun gql c Proxy v -> proxy f -> [GRepCons v]
+  deriveDatatypeName :: GRepFun gql c p v -> proxy f -> TypeName
+  deriveDatatypeName _ _ = ""
 
 instance (Datatype d, GRep gql c v f) => GRep gql c v (M1 D d f) where
   deriveTypeValue options (M1 src) = deriveTypeValue options src
   deriveTypeDefinition options _ = deriveTypeDefinition options (Proxy @f)
+  deriveDatatypeName _ _ = datatypeNameP (Proxy @d)
 
 -- | recursion for Object types, both of them : 'INPUT_OBJECT' and 'OBJECT'
 instance (GRep gql c v a, GRep gql c v b) => GRep gql c v (a :+: b) where

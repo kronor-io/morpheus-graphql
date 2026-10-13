@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "locations": [
+        {
+          "column": 7,
+          "line": 2
+        }
+      ],
+      "message": "Argument \"value\" got invalid value. Expected type \"PaymentMethod!\" found { swish: \"a\", legacyID: \"b\" }. Exactly one key must be specified for OneOf input object."
+    }
+  ]
+}

@@ -26,6 +26,7 @@ import qualified Feature.Inference.WrappedType as WrappedType
 import qualified Feature.Input.Collections as Collections
 import qualified Feature.Input.Enums as Enums
 import qualified Feature.Input.Objects as Objects
+import qualified Feature.Input.OneOf as OneOf
 import qualified Feature.Input.Scalars as Scalars
 import qualified Feature.Input.Variables as Variables
 import qualified Feature.NamedResolvers.API as NamedResolvers
@@ -66,6 +67,7 @@ main =
           (Enums.api, "enums"),
           (Scalars.api, "scalars"),
           (Objects.api, "objects"),
+          (OneOf.api, "one-of"),
           (Collections.api, "collections")
         ],
       testFeatures

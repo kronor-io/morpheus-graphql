@@ -1,0 +1,5 @@
+query ($payment: PaymentMethod!, $card: CardInput!, $lookup: Lookup!) {
+  fromVariable: pay(value: $payment)
+  fromFieldVariable: pay(value: { cardInput: $card })
+  find(value: $lookup)
+}

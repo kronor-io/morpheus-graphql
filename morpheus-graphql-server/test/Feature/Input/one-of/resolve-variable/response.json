@@ -1,0 +1,7 @@
+{
+  "data": {
+    "find": "Lookup {byId = Just 7, byName = Nothing}",
+    "fromFieldVariable": "PaymentMethodCardInput (CardInput {number = \"5555\"})",
+    "fromVariable": "PaymentMethodLegacy \"x2\""
+  }
+}
